@@ -4,6 +4,26 @@
 
 namespace axe {
 
+const char* const prefix_operator_strings[] = {
+    "Bang",
+    "Minus",
+};
+
+prefix::prefix(prefix_operator op, std::unique_ptr<expression> rhs)
+    : op(op), rhs(std::move(rhs)) {}
+
+prefix_operator prefix::get_op() const { return this->op; }
+
+const std::unique_ptr<expression>& prefix::get_rhs() const { return this->rhs; }
+
+std::string prefix::string() const {
+    std::string res = "(";
+    res += prefix_operator_strings[(int)this->op];
+    res += this->rhs->string();
+    res += ")";
+    return res;
+}
+
 expression::expression()
     : type(expression_type::Illegal), data(std::monostate()) {}
 
@@ -14,6 +34,7 @@ const char* const expression_type_strings[] = {
     "Illegal",
     "Integer",
     "Float",
+    "Prefix",
 };
 
 expression_type expression::get_type() const { return this->type; }
@@ -39,6 +60,13 @@ const std::string& expression::get_ident() const {
     return std::get<std::string>(this->data);
 }
 
+const prefix& expression::get_prefix() const {
+    AXE_CHECK(this->type == expression_type::Prefix,
+              "trying to get Prefix from type %s",
+              expression_type_strings[(int)this->type]);
+    return std::get<prefix>(this->data);
+}
+
 std::string expression::string() const {
     switch (this->type) {
     case expression_type::Integer:
@@ -47,6 +75,8 @@ std::string expression::string() const {
         return std::to_string(std::get<double>(this->data));
     case expression_type::Ident:
         return std::get<std::string>(this->data);
+    case expression_type::Prefix:
+        return std::get<prefix>(this->data).string();
     default:
         break;
     }

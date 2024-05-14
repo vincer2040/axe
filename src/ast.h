@@ -3,6 +3,7 @@
 #define __AXE_AST_H__
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <variant>
 #include <vector>
@@ -14,15 +15,35 @@ class ast_node {
     virtual std::string string() const = 0;
 };
 
+enum class prefix_operator {
+    Bang,
+    Minus,
+};
+
+class prefix : public ast_node {
+  public:
+    prefix(prefix_operator op, std::unique_ptr<class expression> rhs);
+
+    prefix_operator get_op() const;
+    const std::unique_ptr<expression>& get_rhs() const;
+
+    std::string string() const;
+
+  private:
+    prefix_operator op;
+    std::unique_ptr<class expression> rhs;
+};
+
 enum class expression_type {
     Illegal,
     Integer,
     Float,
     Ident,
+    Prefix,
 };
 
 using expression_data =
-    std::variant<std::monostate, int64_t, double, std::string>;
+    std::variant<std::monostate, int64_t, double, std::string, prefix>;
 
 class expression : public ast_node {
   public:
@@ -33,6 +54,8 @@ class expression : public ast_node {
     int64_t get_int() const;
     double get_float() const;
     const std::string& get_ident() const;
+    const prefix& get_prefix() const;
+
     std::string string() const;
 
   private:

@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "ast.h"
 #include <utility>
 
 namespace axe {
@@ -23,7 +24,7 @@ ast parser::parse_ast() {
         }
         this->next_token();
     }
-    return ast(statements);
+    return ast(std::move(statements));
 }
 
 statement parser::parse_statement() {
@@ -50,6 +51,12 @@ expression parser::parse_expression(precedence precedence) {
     case token_type::Ident:
         expression = this->parse_ident();
         break;
+    case token_type::Bang:
+        expression = this->parse_prefix(prefix_operator::Bang);
+        break;
+    case token_type::Minus:
+        expression = this->parse_prefix(prefix_operator::Minus);
+        break;
     default:
         this->unknown_token_error(this->cur_token);
         break;
@@ -70,8 +77,16 @@ expression parser::parse_float() {
 }
 
 expression parser::parse_ident() {
-    auto ident = this->cur_token.get_literal();
+    auto& ident = this->cur_token.get_literal();
     return expression(expression_type::Ident, std::move(ident));
+}
+
+expression parser::parse_prefix(prefix_operator op) {
+    this->next_token();
+    auto rhs = std::make_unique<expression>(
+        this->parse_expression(precedence::Prefix));
+    prefix prefix(op, std::move(rhs));
+    return expression(expression_type::Prefix, std::move(prefix));
 }
 
 void parser::next_token() {

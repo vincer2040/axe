@@ -15,7 +15,8 @@ enum class precedence {
     LessGreater = 2,
     Sum = 3,
     Product = 4,
-    Call = 5,
+    Prefix = 5,
+    Call = 6,
 };
 
 class parser {
@@ -39,6 +40,7 @@ class parser {
     expression parse_integer();
     expression parse_float();
     expression parse_ident();
+    expression parse_prefix(prefix_operator op);
 
     void next_token();
     bool peek_token_is(token_type type);
