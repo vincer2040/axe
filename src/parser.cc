@@ -44,6 +44,12 @@ expression parser::parse_expression(precedence precedence) {
     case token_type::Integer:
         expression = this->parse_integer();
         break;
+    case token_type::Float:
+        expression = this->parse_float();
+        break;
+    case token_type::Ident:
+        expression = this->parse_ident();
+        break;
     default:
         this->unknown_token_error(this->cur_token);
         break;
@@ -55,6 +61,17 @@ expression parser::parse_integer() {
     auto& literal = this->cur_token.get_literal();
     int64_t integer = strtoll(literal.c_str(), NULL, 10);
     return expression(expression_type::Integer, integer);
+}
+
+expression parser::parse_float() {
+    auto& literal = this->cur_token.get_literal();
+    double float_value = stod(literal);
+    return expression(expression_type::Float, float_value);
+}
+
+expression parser::parse_ident() {
+    auto ident = this->cur_token.get_literal();
+    return expression(expression_type::Ident, std::move(ident));
 }
 
 void parser::next_token() {

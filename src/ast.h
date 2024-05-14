@@ -17,9 +17,12 @@ class ast_node {
 enum class expression_type {
     Illegal,
     Integer,
+    Float,
+    Ident,
 };
 
-using expression_data = std::variant<std::monostate, int64_t>;
+using expression_data =
+    std::variant<std::monostate, int64_t, double, std::string>;
 
 class expression : public ast_node {
   public:
@@ -28,6 +31,8 @@ class expression : public ast_node {
 
     expression_type get_type() const;
     int64_t get_int() const;
+    double get_float() const;
+    const std::string& get_ident() const;
     std::string string() const;
 
   private:
@@ -79,11 +84,12 @@ class statement : public ast_node {
 
 class ast : public ast_node {
   public:
-      ast(std::vector<statement> statements);
+    ast(std::vector<statement> statements);
 
-      const std::vector<statement>& get_statements() const;
+    const std::vector<statement>& get_statements() const;
 
-      std::string string() const;
+    std::string string() const;
+
   private:
     std::vector<statement> statements;
 };

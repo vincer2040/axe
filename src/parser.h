@@ -37,6 +37,8 @@ class parser {
 
     expression parse_expression(precedence precedence);
     expression parse_integer();
+    expression parse_float();
+    expression parse_ident();
 
     void next_token();
     bool peek_token_is(token_type type);
