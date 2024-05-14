@@ -14,7 +14,27 @@ set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall -Werror -pedantic -fstack-
 set(CMAKE_C_FLAGS_RELEASE "-Wall -Werror -pedantic -fstack-clash-protection -fstack-protector-all \
 -fstack-protector-strong -Werror=format-security -Werror=implicit-function-declaration -pipe -O2 -s -DNDEBUG")
 
+add_library(
+    token
+    src/token.cc
+)
+
+add_library(
+    lexer
+    src/lexer.cc
+)
+
 add_executable(
     axec
     src/main.cc
+)
+
+target_link_libraries(
+    axec
+    lexer
+)
+
+target_link_libraries(
+    lexer
+    token
 )
