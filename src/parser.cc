@@ -84,6 +84,9 @@ expression parser::parse_expression(precedence precedence) {
     case token_type::Minus:
         expression = this->parse_prefix(prefix_operator::Minus);
         break;
+    case token_type::LParen:
+        expression = this->parse_group();
+        break;
     default:
         this->unknown_token_error(this->cur_token);
         break;
@@ -178,6 +181,15 @@ expression parser::parse_infix(infix_operator op, expression lhs) {
     return expression(expression_type::Infix, std::move(infix));
 }
 
+expression parser::parse_group() {
+    this->next_token();
+    expression res = this->parse_expression(precedence::Lowest);
+    if (!this->expect_peek(token_type::RParen)) {
+        return expression();
+    }
+    return res;
+}
+
 void parser::next_token() {
     std::swap(this->cur_token, this->peek_token);
     this->peek_token = this->lex.next_token();
@@ -185,6 +197,15 @@ void parser::next_token() {
 
 bool parser::peek_token_is(token_type type) {
     return this->peek_token.get_type() == type;
+}
+
+bool parser::expect_peek(token_type type) {
+    if (!this->peek_token_is(type)) {
+        peek_error(token(type));
+        return false;
+    }
+    this->next_token();
+    return true;
 }
 
 precedence parser::cur_precedence() {
@@ -197,6 +218,13 @@ precedence parser::peek_precedence() {
 
 void parser::unknown_token_error(const token& token) {
     std::string err = "unknown token: " + std::string(token.type_to_string());
+    this->errors.push_back(err);
+}
+
+void parser::peek_error(const token& token) {
+    std::string err = "expected peek token to be " +
+                      std::string(token.type_to_string()) + ", got " +
+                      this->peek_token.type_to_string() + " instead";
     this->errors.push_back(err);
 }
 
