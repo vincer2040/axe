@@ -1,8 +1,29 @@
 #include "parser.h"
 #include "ast.h"
+#include "token.h"
 #include <utility>
 
 namespace axe {
+
+static precedence get_precedence(token_type type) {
+    switch (type) {
+    case token_type::Eq:
+    case token_type::NotEq:
+        return precedence::Equals;
+    case token_type::Lt:
+    case token_type::Gt:
+        return precedence::LessGreater;
+    case token_type::Plus:
+    case token_type::Minus:
+        return precedence::Sum;
+    case token_type::Asterisk:
+    case token_type::Slash:
+        return precedence::Product;
+    default:
+        break;
+    }
+    return precedence::Lowest;
+}
 
 parser::parser(lexer l) : lex(l) {
     this->next_token();
@@ -61,6 +82,55 @@ expression parser::parse_expression(precedence precedence) {
         this->unknown_token_error(this->cur_token);
         break;
     }
+
+    while (!peek_token_is(token_type::Semicolon) &&
+           precedence < this->peek_precedence()) {
+        switch (this->peek_token.get_type()) {
+        case token_type::Plus:
+            this->next_token();
+            expression =
+                this->parse_infix(infix_operator::Plus, std::move(expression));
+            break;
+        case token_type::Minus:
+            this->next_token();
+            expression =
+                this->parse_infix(infix_operator::Minus, std::move(expression));
+            break;
+        case token_type::Asterisk:
+            this->next_token();
+            expression = this->parse_infix(infix_operator::Asterisk,
+                                           std::move(expression));
+            break;
+        case token_type::Slash:
+            this->next_token();
+            expression =
+                this->parse_infix(infix_operator::Slash, std::move(expression));
+            break;
+        case token_type::Lt:
+            this->next_token();
+            expression =
+                this->parse_infix(infix_operator::Lt, std::move(expression));
+            break;
+        case token_type::Gt:
+            this->next_token();
+            expression =
+                this->parse_infix(infix_operator::Gt, std::move(expression));
+            break;
+        case token_type::Eq:
+            this->next_token();
+            expression =
+                this->parse_infix(infix_operator::Eq, std::move(expression));
+            break;
+        case token_type::NotEq:
+            this->next_token();
+            expression =
+                this->parse_infix(infix_operator::NotEq, std::move(expression));
+            break;
+        default:
+            return expression;
+        }
+    }
+
     return expression;
 }
 
@@ -89,6 +159,15 @@ expression parser::parse_prefix(prefix_operator op) {
     return expression(expression_type::Prefix, std::move(prefix));
 }
 
+expression parser::parse_infix(infix_operator op, expression lhs) {
+    auto lhs_unique = std::make_unique<expression>(std::move(lhs));
+    auto precedence = this->cur_precedence();
+    this->next_token();
+    auto rhs = std::make_unique<expression>(this->parse_expression(precedence));
+    infix infix(op, std::move(lhs_unique), std::move(rhs));
+    return expression(expression_type::Infix, std::move(infix));
+}
+
 void parser::next_token() {
     std::swap(this->cur_token, this->peek_token);
     this->peek_token = this->lex.next_token();
@@ -96,6 +175,14 @@ void parser::next_token() {
 
 bool parser::peek_token_is(token_type type) {
     return this->peek_token.get_type() == type;
+}
+
+precedence parser::cur_precedence() {
+    return get_precedence(this->cur_token.get_type());
+}
+
+precedence parser::peek_precedence() {
+    return get_precedence(this->peek_token.get_type());
 }
 
 void parser::unknown_token_error(const token& token) {

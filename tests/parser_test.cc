@@ -116,3 +116,41 @@ TEST(Parser, Prefix) {
         test_integer(*rhs, test.expected);
     }
 }
+
+template <typename T> struct infix_test {
+    std::string input;
+    axe::infix_operator op;
+    T lhs;
+    T rhs;
+};
+
+TEST(Parser, Infix) {
+    infix_test<int64_t> tests[] = {
+        {"5 + 5;", axe::infix_operator::Plus, 5, 5},
+        {"5 - 5;", axe::infix_operator::Minus, 5, 5},
+        {"5 * 5;", axe::infix_operator::Asterisk, 5, 5},
+        {"5 / 5;", axe::infix_operator::Slash, 5, 5},
+        {"5 < 5;", axe::infix_operator::Lt, 5, 5},
+        {"5 > 5;", axe::infix_operator::Gt, 5, 5},
+        {"5 == 5;", axe::infix_operator::Eq, 5, 5},
+        {"5 != 5;", axe::infix_operator::NotEq, 5, 5},
+    };
+
+    for (auto& test : tests) {
+        axe::lexer l(test.input);
+        axe::parser p(l);
+        auto ast = p.parse();
+        check_errors(p);
+        auto& statements = ast.get_statements();
+        EXPECT_EQ(statements.size(), 1);
+        auto& statement = statements[0];
+        EXPECT_EQ(statement.get_type(),
+                  axe::statement_type::ExpressionStatement);
+        auto& expression = statement.get_expression();
+        EXPECT_EQ(expression.get_type(), axe::expression_type::Infix);
+        auto& infix = expression.get_infix();
+        EXPECT_EQ(infix.get_op(), test.op);
+        test_integer(*infix.get_lhs(), test.lhs);
+        test_integer(*infix.get_rhs(), test.rhs);
+    }
+}

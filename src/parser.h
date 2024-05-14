@@ -41,9 +41,13 @@ class parser {
     expression parse_float();
     expression parse_ident();
     expression parse_prefix(prefix_operator op);
+    expression parse_infix(infix_operator op, expression lhs);
 
     void next_token();
     bool peek_token_is(token_type type);
+
+    precedence cur_precedence();
+    precedence peek_precedence();
 
     void unknown_token_error(const token& type);
 };

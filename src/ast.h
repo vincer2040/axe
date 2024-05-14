@@ -34,16 +34,43 @@ class prefix : public ast_node {
     std::unique_ptr<class expression> rhs;
 };
 
+enum class infix_operator {
+    Plus,
+    Minus,
+    Asterisk,
+    Slash,
+    Lt,
+    Gt,
+    Eq,
+    NotEq,
+};
+
+class infix : public ast_node {
+    public:
+        infix(infix_operator op, std::unique_ptr<class expression> lhs, std::unique_ptr<class expression> rhs);
+
+        infix_operator get_op() const;
+        const std::unique_ptr<class expression>& get_lhs() const;
+        const std::unique_ptr<class expression>& get_rhs() const;
+
+        std::string string() const;
+    private:
+        infix_operator op;
+        std::unique_ptr<class expression> lhs;
+        std::unique_ptr<class expression> rhs;
+};
+
 enum class expression_type {
     Illegal,
     Integer,
     Float,
     Ident,
     Prefix,
+    Infix,
 };
 
 using expression_data =
-    std::variant<std::monostate, int64_t, double, std::string, prefix>;
+    std::variant<std::monostate, int64_t, double, std::string, prefix, infix>;
 
 class expression : public ast_node {
   public:
@@ -55,6 +82,7 @@ class expression : public ast_node {
     double get_float() const;
     const std::string& get_ident() const;
     const prefix& get_prefix() const;
+    const infix& get_infix() const;
 
     std::string string() const;
 

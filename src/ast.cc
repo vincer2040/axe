@@ -4,9 +4,43 @@
 
 namespace axe {
 
+const char* const infix_operator_strings[] = {
+    "Plus", "Minus", "Asterisk", "Slash", "Lt", "Gt", "Eq", "NotEq",
+};
+
+const char* const infix_operator_string_reps[] = {
+    "+", "-", "*", "/", "<", ">", "==", "!=",
+};
+
+infix::infix(infix_operator op, std::unique_ptr<expression> lhs,
+             std::unique_ptr<expression> rhs)
+    : op(op), lhs(std::move(lhs)), rhs(std::move(rhs)) {}
+
+infix_operator infix::get_op() const { return this->op; }
+
+const std::unique_ptr<expression>& infix::get_lhs() const { return this->lhs; }
+
+const std::unique_ptr<expression>& infix::get_rhs() const { return this->rhs; }
+
+std::string infix::string() const {
+    std::string res = "(";
+    res += this->lhs->string();
+    res += " ";
+    res += infix_operator_string_reps[(int)this->op];
+    res += " ";
+    res += this->rhs->string();
+    res += ")";
+    return res;
+}
+
 const char* const prefix_operator_strings[] = {
     "Bang",
     "Minus",
+};
+
+const char* const prefix_operator_string_reps[] = {
+    "!",
+    "-",
 };
 
 prefix::prefix(prefix_operator op, std::unique_ptr<expression> rhs)
@@ -18,7 +52,7 @@ const std::unique_ptr<expression>& prefix::get_rhs() const { return this->rhs; }
 
 std::string prefix::string() const {
     std::string res = "(";
-    res += prefix_operator_strings[(int)this->op];
+    res += prefix_operator_string_reps[(int)this->op];
     res += this->rhs->string();
     res += ")";
     return res;
@@ -31,10 +65,7 @@ expression::expression(expression_type type, expression_data data)
     : type(type), data(std::move(data)) {}
 
 const char* const expression_type_strings[] = {
-    "Illegal",
-    "Integer",
-    "Float",
-    "Prefix",
+    "Illegal", "Integer", "Float", "Prefix", "Infix",
 };
 
 expression_type expression::get_type() const { return this->type; }
@@ -67,6 +98,13 @@ const prefix& expression::get_prefix() const {
     return std::get<prefix>(this->data);
 }
 
+const infix& expression::get_infix() const {
+    AXE_CHECK(this->type == expression_type::Infix,
+              "trying to get Infix from type %s",
+              expression_type_strings[(int)this->type]);
+    return std::get<infix>(this->data);
+}
+
 std::string expression::string() const {
     switch (this->type) {
     case expression_type::Integer:
@@ -77,6 +115,8 @@ std::string expression::string() const {
         return std::get<std::string>(this->data);
     case expression_type::Prefix:
         return std::get<prefix>(this->data).string();
+    case expression_type::Infix:
+        return std::get<infix>(this->data).string();
     default:
         break;
     }
