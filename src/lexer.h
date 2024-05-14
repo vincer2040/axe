@@ -8,20 +8,21 @@
 namespace axe {
 
 class lexer {
-    public:
-        lexer(const std::string& input);
-        token next_token();
-    private:
-        const std::string& input;
-        size_t position;
-        char ch;
+  public:
+    lexer(const std::string& input);
+    token next_token();
 
-        char peek_char();
-        void read_char();
-        void skip_whitespace();
-        std::string read_ident();
-        std::string read_integer();
+  private:
+    const std::string& input;
+    size_t position;
+    char ch;
+
+    char peek_char();
+    void read_char();
+    void skip_whitespace();
+    std::string read_ident();
+    std::string read_integer();
 };
-}
+} // namespace axe
 
 #endif // __AXE_LEXER_H__
