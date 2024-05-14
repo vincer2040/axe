@@ -172,12 +172,17 @@ TEST(Parser, OperatorPrecedence) {
          "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"},
         {"3 + 4 * 5 == 3 * 1 + 4 * 5",
          "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"},
+        {"true", "true"},
+        {"false", "false"},
+        {"3 > 5 == false", "((3 > 5) == false)"},
+        {"3 < 5 == true", "((3 < 5) == true)"},
     };
 
     for (auto& test : tests) {
         axe::lexer l(test.input);
         axe::parser p(l);
         auto ast = p.parse();
+        check_errors(p);
         auto ast_string = ast.string();
         EXPECT_STREQ(ast_string.c_str(), test.expected.c_str());
     }

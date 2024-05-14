@@ -46,31 +46,34 @@ enum class infix_operator {
 };
 
 class infix : public ast_node {
-    public:
-        infix(infix_operator op, std::unique_ptr<class expression> lhs, std::unique_ptr<class expression> rhs);
+  public:
+    infix(infix_operator op, std::unique_ptr<class expression> lhs,
+          std::unique_ptr<class expression> rhs);
 
-        infix_operator get_op() const;
-        const std::unique_ptr<class expression>& get_lhs() const;
-        const std::unique_ptr<class expression>& get_rhs() const;
+    infix_operator get_op() const;
+    const std::unique_ptr<class expression>& get_lhs() const;
+    const std::unique_ptr<class expression>& get_rhs() const;
 
-        std::string string() const;
-    private:
-        infix_operator op;
-        std::unique_ptr<class expression> lhs;
-        std::unique_ptr<class expression> rhs;
+    std::string string() const;
+
+  private:
+    infix_operator op;
+    std::unique_ptr<class expression> lhs;
+    std::unique_ptr<class expression> rhs;
 };
 
 enum class expression_type {
     Illegal,
     Integer,
     Float,
+    Bool,
     Ident,
     Prefix,
     Infix,
 };
 
 using expression_data =
-    std::variant<std::monostate, int64_t, double, std::string, prefix, infix>;
+    std::variant<std::monostate, int64_t, double, bool, std::string, prefix, infix>;
 
 class expression : public ast_node {
   public:
@@ -80,6 +83,7 @@ class expression : public ast_node {
     expression_type get_type() const;
     int64_t get_int() const;
     double get_float() const;
+    bool get_bool() const;
     const std::string& get_ident() const;
     const prefix& get_prefix() const;
     const infix& get_infix() const;

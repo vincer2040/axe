@@ -39,6 +39,7 @@ class parser {
     expression parse_expression(precedence precedence);
     expression parse_integer();
     expression parse_float();
+    expression parse_bool(bool value);
     expression parse_ident();
     expression parse_prefix(prefix_operator op);
     expression parse_infix(infix_operator op, expression lhs);

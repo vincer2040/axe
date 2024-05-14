@@ -69,6 +69,12 @@ expression parser::parse_expression(precedence precedence) {
     case token_type::Float:
         expression = this->parse_float();
         break;
+    case token_type::True:
+        expression = this->parse_bool(true);
+        break;
+    case token_type::False:
+        expression = this->parse_bool(false);
+        break;
     case token_type::Ident:
         expression = this->parse_ident();
         break;
@@ -144,6 +150,10 @@ expression parser::parse_float() {
     auto& literal = this->cur_token.get_literal();
     double float_value = stod(literal);
     return expression(expression_type::Float, float_value);
+}
+
+expression parser::parse_bool(bool value) {
+    return expression(expression_type::Bool, value);
 }
 
 expression parser::parse_ident() {

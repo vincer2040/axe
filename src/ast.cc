@@ -65,7 +65,7 @@ expression::expression(expression_type type, expression_data data)
     : type(type), data(std::move(data)) {}
 
 const char* const expression_type_strings[] = {
-    "Illegal", "Integer", "Float", "Prefix", "Infix",
+    "Illegal", "Integer", "Float", "Bool", "Prefix", "Infix",
 };
 
 expression_type expression::get_type() const { return this->type; }
@@ -82,6 +82,13 @@ double expression::get_float() const {
               "trying to get Float from type %s",
               expression_type_strings[(int)this->type]);
     return std::get<double>(this->data);
+}
+
+bool expression::get_bool() const {
+    AXE_CHECK(this->type == expression_type::Bool,
+              "trying to get Bool from type %s",
+              expression_type_strings[(int)this->type]);
+    return std::get<bool>(this->data);
 }
 
 const std::string& expression::get_ident() const {
@@ -111,6 +118,8 @@ std::string expression::string() const {
         return std::to_string(std::get<int64_t>(this->data));
     case expression_type::Float:
         return std::to_string(std::get<double>(this->data));
+    case expression_type::Bool:
+        return std::get<bool>(this->data) ? "true" : "false";
     case expression_type::Ident:
         return std::get<std::string>(this->data);
     case expression_type::Prefix:
