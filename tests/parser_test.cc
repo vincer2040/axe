@@ -154,3 +154,31 @@ TEST(Parser, Infix) {
         test_integer(*infix.get_rhs(), test.rhs);
     }
 }
+
+TEST(Parser, OperatorPrecedence) {
+    parser_test<std::string> tests[] = {
+        {"-a * b", "((-a) * b)"},
+        {"!-a", "(!(-a))"},
+        {"a + b + c", "((a + b) + c)"},
+        {"a + b - c", "((a + b) - c)"},
+        {"a * b * c", "((a * b) * c)"},
+        {"a * b / c", "((a * b) / c)"},
+        {"a + b / c", "(a + (b / c))"},
+        {"a + b * c + d / e - f", "(((a + (b * c)) + (d / e)) - f)"},
+        {"3 + 4; -5 * 5", "(3 + 4)((-5) * 5)"},
+        {"5 > 4 == 3 < 4", "((5 > 4) == (3 < 4))"},
+        {"5 < 4 != 3 > 4", "((5 < 4) != (3 > 4))"},
+        {"3 + 4 * 5 == 3 * 1 + 4 * 5",
+         "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"},
+        {"3 + 4 * 5 == 3 * 1 + 4 * 5",
+         "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"},
+    };
+
+    for (auto& test : tests) {
+        axe::lexer l(test.input);
+        axe::parser p(l);
+        auto ast = p.parse();
+        auto ast_string = ast.string();
+        EXPECT_STREQ(ast_string.c_str(), test.expected.c_str());
+    }
+}
