@@ -149,7 +149,7 @@ expression parser::parse_expression(precedence precedence) {
 
 expression parser::parse_integer() {
     auto& literal = this->cur_token.get_literal();
-    int64_t integer = strtoll(literal.c_str(), NULL, 10);
+    int64_t integer = stoll(literal);
     return expression(expression_type::Integer, integer);
 }
 
