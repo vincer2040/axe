@@ -34,6 +34,8 @@ class parser {
     ast parse_ast();
 
     statement parse_statement();
+    statement parse_let_statement();
+    statement parse_return_statement();
     statement parse_expression_statement();
 
     expression parse_expression(precedence precedence);

@@ -436,7 +436,7 @@ std::string statement::string() const {
     case statement_type::LetStatement:
         return this->get_let().string();
     case statement_type::ReturnStatement:
-        return this->get_return().string();
+        return std::string("return ") + this->get_return().string();
     case statement_type::ExpressionStatement:
         return this->get_expression().string();
     default:

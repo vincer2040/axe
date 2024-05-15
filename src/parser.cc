@@ -52,7 +52,40 @@ ast parser::parse_ast() {
 }
 
 statement parser::parse_statement() {
-    return this->parse_expression_statement();
+    switch (this->cur_token.get_type()) {
+    case token_type::Let:
+        return this->parse_let_statement();
+    case token_type::Return:
+        return this->parse_return_statement();
+    default:
+        return this->parse_expression_statement();
+    }
+}
+
+statement parser::parse_let_statement() {
+    if (!this->expect_peek(token_type::Ident)) {
+        return statement();
+    }
+    auto name = this->cur_token.get_literal();
+    if (!this->expect_peek(token_type::Assign)) {
+        return statement();
+    }
+    this->next_token();
+    auto value = this->parse_expression(precedence::Lowest);
+    if (this->peek_token_is(token_type::Semicolon)) {
+        this->next_token();
+    }
+    let_statement let(std::move(name), std::move(value));
+    return statement(statement_type::LetStatement, std::move(let));
+}
+
+statement parser::parse_return_statement() {
+    this->next_token();
+    auto value = this->parse_expression(precedence::Lowest);
+    if (this->peek_token_is(token_type::Semicolon)) {
+        this->next_token();
+    }
+    return statement(statement_type::ReturnStatement, std::move(value));
 }
 
 statement parser::parse_expression_statement() {

@@ -8,11 +8,6 @@ void check_errors(axe::parser& p) {
     EXPECT_EQ(p.get_errors().size(), 0);
 }
 
-template <typename T> struct parser_test {
-    std::string input;
-    T expected;
-};
-
 void test_integer(const axe::expression& expression, int64_t expected) {
     EXPECT_EQ(expression.get_type(), axe::expression_type::Integer);
     auto value = expression.get_int();
@@ -23,6 +18,58 @@ void test_bool(const axe::expression& expression, bool expected) {
     EXPECT_EQ(expression.get_type(), axe::expression_type::Bool);
     auto value = expression.get_bool();
     EXPECT_EQ(value, expected);
+}
+
+template <typename T> struct let_test {
+    std::string input;
+    std::string name;
+    T expected;
+};
+
+TEST(Parser, LetStatements) {
+    let_test<int64_t> tests[] = {
+        {"let foo = 1;", "foo", 1},
+        {"let foo1 = 1;", "foo1", 1},
+        {"let foo_1 = 1;", "foo_1", 1},
+    };
+    for (auto& test : tests) {
+        axe::lexer lexer(test.input);
+        axe::parser parser(lexer);
+        auto ast = parser.parse();
+        check_errors(parser);
+        auto& statements = ast.get_statements();
+        EXPECT_EQ(statements.size(), 1);
+        auto& statement = statements[0];
+        EXPECT_EQ(statement.get_type(), axe::statement_type::LetStatement);
+        auto& let = statement.get_let();
+        EXPECT_STREQ(let.get_name().c_str(), test.name.c_str());
+        test_integer(let.get_value(), test.expected);
+    }
+}
+
+template <typename T> struct parser_test {
+    std::string input;
+    T expected;
+};
+
+TEST(Parser, ReturnStatements) {
+    parser_test<int64_t> tests[] = {
+        {"return 5;", 5},
+        {"return 10;", 10},
+    };
+
+    for (auto& test : tests) {
+        axe::lexer l(test.input);
+        axe::parser p(l);
+        auto ast = p.parse();
+        check_errors(p);
+        auto& statements = ast.get_statements();
+        EXPECT_EQ(statements.size(), 1);
+        auto& statement = statements[0];
+        EXPECT_EQ(statement.get_type(), axe::statement_type::ReturnStatement);
+        auto& ret = statement.get_return();
+        test_integer(ret, test.expected);
+    }
 }
 
 TEST(Parser, Integer) {
