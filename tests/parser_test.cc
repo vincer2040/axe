@@ -19,6 +19,12 @@ void test_integer(const axe::expression& expression, int64_t expected) {
     EXPECT_EQ(value, expected);
 }
 
+void test_bool(const axe::expression& expression, bool expected) {
+    EXPECT_EQ(expression.get_type(), axe::expression_type::Bool);
+    auto value = expression.get_bool();
+    EXPECT_EQ(value, expected);
+}
+
 TEST(Parser, Integer) {
     parser_test<int64_t> tests[] = {
         {"5;", 5},
@@ -295,4 +301,176 @@ TEST(Parser, IfElseNoParen) {
               axe::statement_type::ExpressionStatement);
     auto& alternative_exp = alternative_statement.get_expression();
     test_ident(alternative_exp, "y");
+}
+
+template <typename T> struct match_branch_pattern_test {
+    axe::match_branch_pattern_type type;
+    T expected;
+};
+
+template <typename T> struct match_consequence_test {
+    axe::match_branch_consequence_type type;
+    T expected;
+};
+
+TEST(Parser, Match) {
+    std::string input = "\
+    match foo {\
+        1 => true,\
+        2 => false,\
+        3 => true,\
+        _ => { \
+            if foo > 10 {\
+                false\
+            } else {\
+                true\
+            }\
+        }\
+    }";
+    axe::lexer l(input);
+    axe::parser p(l);
+    auto ast = p.parse();
+    check_errors(p);
+    auto& statements = ast.get_statements();
+    EXPECT_EQ(statements.size(), 1);
+    auto& statement = statements[0];
+    EXPECT_EQ(statement.get_type(), axe::statement_type::ExpressionStatement);
+    auto& expression = statement.get_expression();
+    EXPECT_EQ(expression.get_type(), axe::expression_type::Match);
+    auto& match = expression.get_match();
+    test_ident(*match.get_patten(), "foo");
+    auto& branches = match.get_branches();
+    EXPECT_EQ(branches.size(), 4);
+    match_branch_pattern_test<int64_t> match_branch_pattern_tests[] = {
+        {axe::match_branch_pattern_type::Expression, 1},
+        {axe::match_branch_pattern_type::Expression, 2},
+        {axe::match_branch_pattern_type::Expression, 3},
+        {axe::match_branch_pattern_type::Wildcard, 0},
+    };
+    size_t length = sizeof match_branch_pattern_tests /
+                    sizeof match_branch_pattern_tests[0];
+    for (size_t i = 0; i < length; ++i) {
+        auto& test = match_branch_pattern_tests[i];
+        auto& pattern = branches[i].get_pattern();
+        EXPECT_EQ(pattern.get_type(), test.type);
+        if (test.type == axe::match_branch_pattern_type::Expression) {
+            test_integer(*pattern.get_expression_pattern(), test.expected);
+        }
+    }
+    match_consequence_test<bool> match_consequence_tests[] = {
+        {axe::match_branch_consequence_type::Expression, true},
+        {axe::match_branch_consequence_type::Expression, false},
+        {axe::match_branch_consequence_type::Expression, true},
+        {axe::match_branch_consequence_type::BlockStatement, true},
+    };
+    length = sizeof match_branch_pattern_tests /
+             sizeof match_branch_pattern_tests[0];
+    for (size_t i = 0; i < length; ++i) {
+        auto& test = match_consequence_tests[i];
+        auto& consequence = branches[i].get_consequence();
+        EXPECT_EQ(consequence.get_type(), test.type);
+        if (test.type == axe::match_branch_consequence_type::Expression) {
+            test_bool(*consequence.get_expression_consequence(), test.expected);
+        } else {
+            auto& block =
+                consequence.get_block_statement_consequence().get_block();
+            EXPECT_EQ(block.size(), 1);
+            auto& block_statement = block[0];
+            EXPECT_EQ(block_statement.get_type(),
+                      axe::statement_type::ExpressionStatement);
+            auto& block_expression = block_statement.get_expression();
+            EXPECT_EQ(block_expression.get_type(), axe::expression_type::If);
+            auto& if_exp = block_expression.get_if();
+            auto& cond = if_exp.get_cond();
+            EXPECT_EQ(cond->get_type(), axe::expression_type::Infix);
+            auto& infix = cond->get_infix();
+            EXPECT_EQ(infix.get_op(), axe::infix_operator::Gt);
+            test_ident(*infix.get_lhs(), "foo");
+            test_integer(*infix.get_rhs(), 10);
+            EXPECT_EQ(if_exp.get_consequence().get_block().size(), 1);
+            EXPECT_TRUE(if_exp.get_alternative().has_value());
+            EXPECT_EQ(if_exp.get_alternative()->get_block().size(), 1);
+        }
+    }
+}
+
+TEST(Parser, MatchParen) {
+    std::string input = "\
+    match (foo) {\
+        1 => true,\
+        2 => false,\
+        3 => true,\
+        _ => { \
+            if foo > 10 {\
+                false\
+            } else {\
+                true\
+            }\
+        }\
+    }";
+    axe::lexer l(input);
+    axe::parser p(l);
+    auto ast = p.parse();
+    check_errors(p);
+    auto& statements = ast.get_statements();
+    EXPECT_EQ(statements.size(), 1);
+    auto& statement = statements[0];
+    EXPECT_EQ(statement.get_type(), axe::statement_type::ExpressionStatement);
+    auto& expression = statement.get_expression();
+    EXPECT_EQ(expression.get_type(), axe::expression_type::Match);
+    auto& match = expression.get_match();
+    test_ident(*match.get_patten(), "foo");
+    auto& branches = match.get_branches();
+    EXPECT_EQ(branches.size(), 4);
+    match_branch_pattern_test<int64_t> match_branch_pattern_tests[] = {
+        {axe::match_branch_pattern_type::Expression, 1},
+        {axe::match_branch_pattern_type::Expression, 2},
+        {axe::match_branch_pattern_type::Expression, 3},
+        {axe::match_branch_pattern_type::Wildcard, 0},
+    };
+    size_t length = sizeof match_branch_pattern_tests /
+                    sizeof match_branch_pattern_tests[0];
+    for (size_t i = 0; i < length; ++i) {
+        auto& test = match_branch_pattern_tests[i];
+        auto& pattern = branches[i].get_pattern();
+        EXPECT_EQ(pattern.get_type(), test.type);
+        if (test.type == axe::match_branch_pattern_type::Expression) {
+            test_integer(*pattern.get_expression_pattern(), test.expected);
+        }
+    }
+    match_consequence_test<bool> match_consequence_tests[] = {
+        {axe::match_branch_consequence_type::Expression, true},
+        {axe::match_branch_consequence_type::Expression, false},
+        {axe::match_branch_consequence_type::Expression, true},
+        {axe::match_branch_consequence_type::BlockStatement, true},
+    };
+    length = sizeof match_branch_pattern_tests /
+             sizeof match_branch_pattern_tests[0];
+    for (size_t i = 0; i < length; ++i) {
+        auto& test = match_consequence_tests[i];
+        auto& consequence = branches[i].get_consequence();
+        EXPECT_EQ(consequence.get_type(), test.type);
+        if (test.type == axe::match_branch_consequence_type::Expression) {
+            test_bool(*consequence.get_expression_consequence(), test.expected);
+        } else {
+            auto& block =
+                consequence.get_block_statement_consequence().get_block();
+            EXPECT_EQ(block.size(), 1);
+            auto& block_statement = block[0];
+            EXPECT_EQ(block_statement.get_type(),
+                      axe::statement_type::ExpressionStatement);
+            auto& block_expression = block_statement.get_expression();
+            EXPECT_EQ(block_expression.get_type(), axe::expression_type::If);
+            auto& if_exp = block_expression.get_if();
+            auto& cond = if_exp.get_cond();
+            EXPECT_EQ(cond->get_type(), axe::expression_type::Infix);
+            auto& infix = cond->get_infix();
+            EXPECT_EQ(infix.get_op(), axe::infix_operator::Gt);
+            test_ident(*infix.get_lhs(), "foo");
+            test_integer(*infix.get_rhs(), 10);
+            EXPECT_EQ(if_exp.get_consequence().get_block().size(), 1);
+            EXPECT_TRUE(if_exp.get_alternative().has_value());
+            EXPECT_EQ(if_exp.get_alternative()->get_block().size(), 1);
+        }
+    }
 }

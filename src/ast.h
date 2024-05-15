@@ -93,6 +93,83 @@ class if_expression : public ast_node {
     std::optional<block_statement> alternative;
 };
 
+enum class match_branch_pattern_type {
+    Expression,
+    Wildcard,
+};
+
+using match_branch_pattern_data =
+    std::variant<std::monostate, std::unique_ptr<class expression>>;
+
+class match_branch_pattern : public ast_node {
+  public:
+    match_branch_pattern(match_branch_pattern_type type,
+                         match_branch_pattern_data data);
+
+    match_branch_pattern_type get_type() const;
+    const std::unique_ptr<class expression>& get_expression_pattern() const;
+
+    std::string string() const;
+
+  private:
+    match_branch_pattern_type type;
+    match_branch_pattern_data data;
+};
+
+enum class match_branch_consequence_type {
+    Expression,
+    BlockStatement,
+};
+
+using match_branch_consequence_data =
+    std::variant<std::unique_ptr<class expression>, block_statement>;
+
+class match_branch_consequence : public ast_node {
+  public:
+    match_branch_consequence(match_branch_consequence_type type,
+                             match_branch_consequence_data data);
+
+    match_branch_consequence_type get_type() const;
+    const std::unique_ptr<class expression>& get_expression_consequence() const;
+    const block_statement& get_block_statement_consequence() const;
+
+    std::string string() const;
+
+  private:
+    match_branch_consequence_type type;
+    match_branch_consequence_data data;
+};
+
+class match_branch : public ast_node {
+  public:
+    match_branch(match_branch_pattern pattern,
+                 match_branch_consequence consequence);
+
+    const match_branch_pattern& get_pattern() const;
+    const match_branch_consequence& get_consequence() const;
+
+    std::string string() const;
+
+  private:
+    match_branch_pattern pattern;
+    match_branch_consequence consequence;
+};
+
+class match : public ast_node {
+  public:
+    match(std::unique_ptr<class expression> pattern,
+          std::vector<match_branch> branches);
+
+    const std::unique_ptr<class expression>& get_patten() const;
+    const std::vector<match_branch>& get_branches() const;
+
+    std::string string() const;
+
+  private:
+    std::unique_ptr<class expression> pattern;
+    std::vector<match_branch> branches;
+};
+
 enum class expression_type {
     Illegal,
     Integer,
@@ -102,10 +179,12 @@ enum class expression_type {
     Prefix,
     Infix,
     If,
+    Match,
 };
 
-using expression_data = std::variant<std::monostate, int64_t, double, bool,
-                                     std::string, prefix, infix, if_expression>;
+using expression_data =
+    std::variant<std::monostate, int64_t, double, bool, std::string, prefix,
+                 infix, if_expression, match>;
 
 class expression : public ast_node {
   public:
@@ -120,6 +199,7 @@ class expression : public ast_node {
     const prefix& get_prefix() const;
     const infix& get_infix() const;
     const if_expression& get_if() const;
+    const match& get_match() const;
 
     std::string string() const;
 

@@ -91,6 +91,9 @@ expression parser::parse_expression(precedence precedence) {
     case token_type::If:
         expression = this->parse_if();
         break;
+    case token_type::Match:
+        expression = this->parse_match();
+        break;
     default:
         this->unknown_token_error(this->cur_token);
         break;
@@ -223,6 +226,85 @@ expression parser::parse_if() {
     if_expression if_exp(std::move(cond), std::move(consequence),
                          std::move(alternative));
     return expression(expression_type::If, std::move(if_exp));
+}
+
+expression parser::parse_match() {
+    this->next_token();
+    bool expect_rparen = false;
+    if (this->cur_token.get_type() == token_type::LParen) {
+        this->next_token();
+        expect_rparen = true;
+    }
+    auto pattern = std::make_unique<expression>(
+        this->parse_expression(precedence::Lowest));
+    if (expect_rparen) {
+        if (!this->expect_peek(token_type::RParen)) {
+            return expression();
+        }
+    }
+    if (!this->expect_peek(token_type::LSquirly)) {
+        return expression();
+    }
+    auto branches = this->parse_match_branches();
+    match match(std::move(pattern), std::move(branches));
+    return expression(expression_type::Match, std::move(match));
+}
+
+std::vector<match_branch> parser::parse_match_branches() {
+    std::vector<match_branch> res;
+    this->next_token();
+    while (this->cur_token.get_type() != token_type::RSquirly &&
+           this->cur_token.get_type() != token_type::Eof) {
+        auto branch = this->parse_match_branch();
+        if (branch.has_value()) {
+            res.push_back(std::move(*branch));
+        }
+        this->next_token();
+    }
+    return res;
+}
+
+std::optional<match_branch> parser::parse_match_branch() {
+    auto pattern = this->parse_match_branch_pattern();
+    if (!this->expect_peek(token_type::FatArrow)) {
+        return std::nullopt;
+    }
+    this->next_token();
+    auto consequence = this->parse_match_branch_consequence();
+    if (!consequence.has_value()) {
+        return std::nullopt;
+    }
+    return match_branch(std::move(pattern), std::move(*consequence));
+}
+
+match_branch_pattern parser::parse_match_branch_pattern() {
+    if (this->cur_token.get_type() == token_type::Underscore) {
+        return match_branch_pattern(match_branch_pattern_type::Wildcard,
+                                    std::monostate());
+    }
+    auto pattern = std::make_unique<expression>(
+        this->parse_expression(precedence::Lowest));
+    return match_branch_pattern(match_branch_pattern_type::Expression,
+                                std::move(pattern));
+}
+
+std::optional<match_branch_consequence>
+parser::parse_match_branch_consequence() {
+    if (this->cur_token.get_type() == token_type::LSquirly) {
+        auto block = this->parse_block();
+        if (this->peek_token_is(token_type::Comma)) {
+            this->next_token();
+        }
+        return match_branch_consequence(
+            match_branch_consequence_type::BlockStatement, std::move(block));
+    }
+    auto exp = std::make_unique<expression>(
+        this->parse_expression(precedence::Lowest));
+    if (!this->expect_peek(token_type::Comma)) {
+        return std::nullopt;
+    }
+    return match_branch_consequence(match_branch_consequence_type::Expression,
+                                    std::move(exp));
 }
 
 block_statement parser::parse_block() {

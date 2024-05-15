@@ -103,6 +103,114 @@ std::string if_expression::string() const {
     return res;
 }
 
+match_branch_pattern::match_branch_pattern(match_branch_pattern_type type,
+                                           match_branch_pattern_data data)
+    : type(type), data(std::move(data)) {}
+
+match_branch_pattern_type match_branch_pattern::get_type() const {
+    return this->type;
+}
+
+const std::unique_ptr<expression>&
+match_branch_pattern::get_expression_pattern() const {
+    AXE_CHECK(this->type == match_branch_pattern_type::Expression,
+              "tried to get expression pattern from wildcard pattern");
+    return std::get<std::unique_ptr<expression>>(this->data);
+}
+
+std::string match_branch_pattern::string() const {
+    std::string res;
+    switch (this->type) {
+    case match_branch_pattern_type::Expression:
+        res += std::get<std::unique_ptr<expression>>(this->data)->string();
+        break;
+    case match_branch_pattern_type::Wildcard:
+        res += "_";
+        break;
+    }
+    return res;
+}
+
+match_branch_consequence::match_branch_consequence(
+    match_branch_consequence_type type, match_branch_consequence_data data)
+    : type(type), data(std::move(data)) {}
+
+match_branch_consequence_type match_branch_consequence::get_type() const {
+    return this->type;
+}
+
+const std::unique_ptr<expression>&
+match_branch_consequence::get_expression_consequence() const {
+    AXE_CHECK(this->type == match_branch_consequence_type::Expression,
+              "trying to get expression consequence from block statement "
+              "consequence");
+    return std::get<std::unique_ptr<expression>>(this->data);
+}
+
+const block_statement&
+match_branch_consequence::get_block_statement_consequence() const {
+    AXE_CHECK(this->type == match_branch_consequence_type::BlockStatement,
+              "trying to get block statement consequence from expression "
+              "consequence");
+    return std::get<block_statement>(this->data);
+}
+
+std::string match_branch_consequence::string() const {
+    std::string res;
+    switch (this->type) {
+    case match_branch_consequence_type::Expression:
+        res += this->get_expression_consequence()->string();
+        break;
+    case match_branch_consequence_type::BlockStatement:
+        res += this->get_block_statement_consequence().string();
+        break;
+    }
+    return res;
+}
+
+match_branch::match_branch(match_branch_pattern pattern,
+                           match_branch_consequence consequence)
+    : pattern(std::move(pattern)), consequence(std::move(consequence)) {}
+
+const match_branch_pattern& match_branch::get_pattern() const {
+    return this->pattern;
+}
+
+const match_branch_consequence& match_branch::get_consequence() const {
+    return this->consequence;
+}
+
+std::string match_branch::string() const {
+    std::string res = this->pattern.string();
+    res += " => ";
+    res += this->consequence.string();
+    return res;
+}
+
+match::match(std::unique_ptr<expression> pattern,
+             std::vector<match_branch> branches)
+    : pattern(std::move(pattern)), branches(std::move(branches)) {}
+
+const std::unique_ptr<expression>& match::get_patten() const {
+    return this->pattern;
+}
+
+const std::vector<match_branch>& match::get_branches() const {
+    return this->branches;
+}
+
+std::string match::string() const {
+    std::string res = "match ";
+    res += this->pattern->string();
+    res += " {\n";
+    for (auto& branch : this->branches) {
+        res += branch.string();
+        res += ",\n";
+    }
+    res += "\n}";
+    return res;
+}
+
 expression::expression()
     : type(expression_type::Illegal), data(std::monostate()) {}
 
@@ -164,6 +272,13 @@ const if_expression& expression::get_if() const {
     return std::get<if_expression>(this->data);
 }
 
+const match& expression::get_match() const {
+    AXE_CHECK(this->type == expression_type::Match,
+              "trying to get Match from type %s",
+              expression_type_strings[(int)this->type]);
+    return std::get<match>(this->data);
+}
+
 std::string expression::string() const {
     switch (this->type) {
     case expression_type::Integer:
@@ -180,6 +295,8 @@ std::string expression::string() const {
         return std::get<infix>(this->data).string();
     case expression_type::If:
         return std::get<if_expression>(this->data).string();
+    case expression_type::Match:
+        return std::get<match>(this->data).string();
     default:
         break;
     }

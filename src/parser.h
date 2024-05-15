@@ -45,6 +45,12 @@ class parser {
     expression parse_infix(infix_operator op, expression lhs);
     expression parse_group();
     expression parse_if();
+    expression parse_match();
+
+    std::vector<match_branch> parse_match_branches();
+    std::optional<match_branch> parse_match_branch();
+    match_branch_pattern parse_match_branch_pattern();
+    std::optional<match_branch_consequence> parse_match_branch_consequence();
 
     block_statement parse_block();
 
