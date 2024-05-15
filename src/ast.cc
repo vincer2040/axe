@@ -211,6 +211,38 @@ std::string match::string() const {
     return res;
 }
 
+function_expression::function_expression(std::string name,
+                                         std::vector<std::string> params,
+                                         block_statement body)
+    : name(std::move(name)), params(std::move(params)), body(std::move(body)) {}
+
+const std::string& function_expression::get_name() const { return this->name; }
+
+const std::vector<std::string>& function_expression::get_params() const {
+    return this->params;
+}
+
+const block_statement& function_expression::get_body() const {
+    return this->body;
+}
+
+std::string function_expression::string() const {
+    std::string res = "fn ";
+    res += this->name;
+    res += "(";
+    for (size_t i = 0; i < this->params.size(); ++i) {
+        res += this->params[i];
+        if (i != this->params.size() - 1) {
+            res += ", ";
+        }
+    }
+    res += ")";
+    res += " {\n";
+    res += this->body.string();
+    res += "\n}";
+    return res;
+}
+
 expression::expression()
     : type(expression_type::Illegal), data(std::monostate()) {}
 
@@ -218,7 +250,8 @@ expression::expression(expression_type type, expression_data data)
     : type(type), data(std::move(data)) {}
 
 const char* const expression_type_strings[] = {
-    "Illegal", "Integer", "Float", "Bool", "Prefix", "Infix", "If",
+    "Illegal", "Integer", "Float", "Bool",     "Prefix",
+    "Infix",   "If",      "Match", "Function",
 };
 
 expression_type expression::get_type() const { return this->type; }
@@ -279,6 +312,13 @@ const match& expression::get_match() const {
     return std::get<match>(this->data);
 }
 
+const function_expression& expression::get_function() const {
+    AXE_CHECK(this->type == expression_type::Function,
+              "trying to get Function from type %s",
+              expression_type_strings[(int)this->type]);
+    return std::get<function_expression>(this->data);
+}
+
 std::string expression::string() const {
     switch (this->type) {
     case expression_type::Integer:
@@ -297,6 +337,8 @@ std::string expression::string() const {
         return std::get<if_expression>(this->data).string();
     case expression_type::Match:
         return std::get<match>(this->data).string();
+    case expression_type::Function:
+        return std::get<function_expression>(this->data).string();
     default:
         break;
     }

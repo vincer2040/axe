@@ -170,6 +170,23 @@ class match : public ast_node {
     std::vector<match_branch> branches;
 };
 
+class function_expression : public ast_node {
+  public:
+    function_expression(std::string name, std::vector<std::string> params,
+                        block_statement body);
+
+    const std::string& get_name() const;
+    const std::vector<std::string>& get_params() const;
+    const block_statement& get_body() const;
+
+    std::string string() const;
+
+  private:
+    std::string name;
+    std::vector<std::string> params;
+    block_statement body;
+};
+
 enum class expression_type {
     Illegal,
     Integer,
@@ -180,11 +197,12 @@ enum class expression_type {
     Infix,
     If,
     Match,
+    Function,
 };
 
 using expression_data =
     std::variant<std::monostate, int64_t, double, bool, std::string, prefix,
-                 infix, if_expression, match>;
+                 infix, if_expression, match, function_expression>;
 
 class expression : public ast_node {
   public:
@@ -200,6 +218,7 @@ class expression : public ast_node {
     const infix& get_infix() const;
     const if_expression& get_if() const;
     const match& get_match() const;
+    const function_expression& get_function() const;
 
     std::string string() const;
 

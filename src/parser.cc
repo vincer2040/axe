@@ -94,6 +94,9 @@ expression parser::parse_expression(precedence precedence) {
     case token_type::Match:
         expression = this->parse_match();
         break;
+    case token_type::Function:
+        expression = this->parse_function();
+        break;
     default:
         this->unknown_token_error(this->cur_token);
         break;
@@ -250,6 +253,24 @@ expression parser::parse_match() {
     return expression(expression_type::Match, std::move(match));
 }
 
+expression parser::parse_function() {
+    if (!this->expect_peek(token_type::Ident)) {
+        return expression();
+    }
+    auto name = this->cur_token.get_literal();
+    if (!this->expect_peek(token_type::LParen)) {
+        return expression();
+    }
+    auto params = this->parse_function_params();
+    if (!this->expect_peek(token_type::LSquirly)) {
+        return expression();
+    }
+    auto body = this->parse_block();
+    function_expression function(std::move(name), std::move(params),
+                                 std::move(body));
+    return expression(expression_type::Function, std::move(function));
+}
+
 std::vector<match_branch> parser::parse_match_branches() {
     std::vector<match_branch> res;
     this->next_token();
@@ -275,6 +296,32 @@ std::optional<match_branch> parser::parse_match_branch() {
         return std::nullopt;
     }
     return match_branch(std::move(pattern), std::move(*consequence));
+}
+
+std::vector<std::string> parser::parse_function_params() {
+    std::vector<std::string> res;
+    if (this->peek_token_is(token_type::RParen)) {
+        this->next_token();
+        return res;
+    }
+    if (!this->expect_peek(token_type::Ident)) {
+        return res;
+    }
+    auto ident = this->cur_token.get_literal();
+    res.push_back(ident);
+    while (this->peek_token_is(token_type::Comma)) {
+        this->next_token();
+        if (!this->expect_peek(token_type::Ident)) {
+            res.clear();
+            return res;
+        }
+        ident = this->cur_token.get_literal();
+        res.push_back(ident);
+    }
+    if (!this->expect_peek(token_type::RParen)) {
+        res.clear();
+    }
+    return res;
 }
 
 match_branch_pattern parser::parse_match_branch_pattern() {
