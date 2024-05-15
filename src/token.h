@@ -30,6 +30,7 @@ enum class token_type {
     Semicolon,
     Colon,
     Dot,
+    Underscore,
 
     Arrow,
     FatArrow,

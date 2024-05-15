@@ -3,18 +3,18 @@
 #include <gtest/gtest.h>
 
 TEST(Lexer, BasicChars) {
-    std::string input = "=+-*/(){}<>!:;,.";
+    std::string input = "=+-*/(){}<>!:;,._";
     axe::lexer lexer(input);
     axe::token_type expected[] = {
-        axe::token_type::Assign,   axe::token_type::Plus,
-        axe::token_type::Minus,    axe::token_type::Asterisk,
-        axe::token_type::Slash,    axe::token_type::LParen,
-        axe::token_type::RParen,   axe::token_type::LSquirly,
-        axe::token_type::RSquirly, axe::token_type::Lt,
-        axe::token_type::Gt,       axe::token_type::Bang,
-        axe::token_type::Colon,    axe::token_type::Semicolon,
-        axe::token_type::Comma,    axe::token_type::Dot,
-        axe::token_type::Eof,
+        axe::token_type::Assign,     axe::token_type::Plus,
+        axe::token_type::Minus,      axe::token_type::Asterisk,
+        axe::token_type::Slash,      axe::token_type::LParen,
+        axe::token_type::RParen,     axe::token_type::LSquirly,
+        axe::token_type::RSquirly,   axe::token_type::Lt,
+        axe::token_type::Gt,         axe::token_type::Bang,
+        axe::token_type::Colon,      axe::token_type::Semicolon,
+        axe::token_type::Comma,      axe::token_type::Dot,
+        axe::token_type::Underscore, axe::token_type::Eof,
     };
 
     for (auto& exp : expected) {

@@ -90,6 +90,9 @@ token lexer::next_token() {
     case '.':
         tok.set_type(token_type::Dot);
         break;
+    case '_':
+        tok.set_type(token_type::Underscore);
+        break;
     default:
         if (is_valid_start_of_ident(this->ch)) {
             std::string ident = this->read_ident();

@@ -56,15 +56,15 @@ void token::set_literal(const std::string& literal) { this->literal = literal; }
 const char* const token_type_strings[] = {
     "Illegal",   "Eof",
 
-    "Assign",    "Plus",     "Minus",    "Asterisk", "Slash",
-    "Lt",        "Gt",       "Bang",     "Eq",       "NotEq",
+    "Assign",    "Plus",     "Minus",    "Asterisk",   "Slash",
+    "Lt",        "Gt",       "Bang",     "Eq",         "NotEq",
 
-    "LParen",    "RParen",   "LSquirly", "RSquirly", "Comma",
-    "Semicolon", "Colon",    "Dot",
+    "LParen",    "RParen",   "LSquirly", "RSquirly",   "Comma",
+    "Semicolon", "Colon",    "Dot",      "Underscore",
 
     "Arrow",     "FatArrow",
 
-    "Let",       "Function", "If",       "Else",     "True",
+    "Let",       "Function", "If",       "Else",       "True",
     "False",     "Return",   "Match",
 
     "Ident",     "Integer",  "Float",
