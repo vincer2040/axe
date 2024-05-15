@@ -93,6 +93,9 @@ token lexer::next_token() {
     case '_':
         tok.set_type(token_type::Underscore);
         break;
+    case '"':
+        tok = token(token_type::String, this->read_string());
+        break;
     default:
         if (is_valid_start_of_ident(this->ch)) {
             std::string ident = this->read_ident();
@@ -141,6 +144,16 @@ std::string lexer::read_ident() {
 std::string lexer::read_integer() {
     std::string res;
     while (isdigit(this->ch)) {
+        res.push_back(this->ch);
+        this->read_char();
+    }
+    return res;
+}
+
+std::string lexer::read_string() {
+    std::string res;
+    this->read_char();
+    while (this->ch != '"' && this->ch != 0) {
         res.push_back(this->ch);
         this->read_char();
     }

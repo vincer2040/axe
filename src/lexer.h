@@ -22,6 +22,7 @@ class lexer {
     void skip_whitespace();
     std::string read_ident();
     std::string read_integer();
+    std::string read_string();
 };
 } // namespace axe
 

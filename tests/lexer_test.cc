@@ -109,4 +109,23 @@ TEST(Lexer, DoubleCharTokens) {
         {"->", axe::token_type::Arrow},
         {"=>", axe::token_type::FatArrow},
     };
+
+    for (auto& test : tests) {
+        axe::lexer lexer(test.input);
+        auto got = lexer.next_token();
+        EXPECT_EQ(got.get_type(), test.expected);
+        EXPECT_EQ(lexer.next_token().get_type(), axe::token_type::Eof);
+    }
+}
+
+TEST(Lexer, Strings) {
+    std::string input = "\"foobar\" \"foo bar\"";
+    const char* expected[] = {"foobar", "foo bar"};
+    axe::lexer l(input);
+    for (auto& exp : expected) {
+        auto got = l.next_token();
+        EXPECT_EQ(got.get_type(), axe::token_type::String);
+        auto lit = got.get_literal();
+        EXPECT_STREQ(lit.c_str(), exp);
+    }
 }

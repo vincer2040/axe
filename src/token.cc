@@ -67,7 +67,7 @@ const char* const token_type_strings[] = {
     "Let",       "Function", "If",       "Else",       "True",
     "False",     "Return",   "Match",
 
-    "Ident",     "Integer",  "Float",
+    "Ident",     "Integer",  "Float",    "String",
 };
 
 token_type token::get_type() const { return this->type; }
@@ -77,17 +77,17 @@ const char* token::type_to_string() const {
 }
 
 const std::string& token::get_literal() const {
-    AXE_CHECK(this->type == token_type::Integer ||
-                  this->type == token_type::Ident ||
-                  this->type == token_type::Float,
-              "tried to get literal from type %s", this->type_to_string());
+    AXE_CHECK(
+        this->type == token_type::Integer || this->type == token_type::Ident ||
+            this->type == token_type::Float || this->type == token_type::String,
+        "tried to get literal from type %s", this->type_to_string());
     return std::get<std::string>(this->literal);
 }
 
 std::string token::string() const {
     std::string res(this->type_to_string());
     if (this->type == token_type::Ident || this->type == token_type::Integer ||
-        this->type == token_type::Float) {
+        this->type == token_type::Float || this->type == token_type::String) {
         res.push_back(' ');
         res += std::get<std::string>(this->literal);
     }

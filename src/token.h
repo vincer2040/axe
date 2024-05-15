@@ -47,6 +47,7 @@ enum class token_type {
     Ident,
     Integer,
     Float,
+    String,
 };
 
 class token {
