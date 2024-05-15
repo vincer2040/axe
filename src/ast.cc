@@ -243,6 +243,27 @@ std::string function_expression::string() const {
     return res;
 }
 
+call::call(std::string name, std::vector<expression> args)
+    : name(std::move(name)), args(std::move(args)) {}
+
+const std::string& call::get_name() const { return this->name; }
+
+const std::vector<expression>& call::get_args() const { return this->args; }
+
+std::string call::string() const {
+    std::string res;
+    res += this->name;
+    res += "(";
+    for (size_t i = 0; i < this->args.size(); ++i) {
+        res += this->args[i].string();
+        if (i != this->args.size() - 1) {
+            res += ", ";
+        }
+    }
+    res += ")";
+    return res;
+}
+
 expression::expression()
     : type(expression_type::Illegal), data(std::monostate()) {}
 
@@ -251,10 +272,14 @@ expression::expression(expression_type type, expression_data data)
 
 const char* const expression_type_strings[] = {
     "Illegal", "Integer", "Float", "Bool",     "Prefix",
-    "Infix",   "If",      "Match", "Function",
+    "Infix",   "If",      "Match", "Function", "Call",
 };
 
 expression_type expression::get_type() const { return this->type; }
+
+const char* expression::type_to_string() const {
+    return expression_type_strings[(int)this->type];
+}
 
 int64_t expression::get_int() const {
     AXE_CHECK(this->type == expression_type::Integer,
@@ -319,6 +344,13 @@ const function_expression& expression::get_function() const {
     return std::get<function_expression>(this->data);
 }
 
+const call& expression::get_call() const {
+    AXE_CHECK(this->type == expression_type::Call,
+              "trying to get Call from type %s",
+              expression_type_strings[(int)this->type]);
+    return std::get<call>(this->data);
+}
+
 std::string expression::string() const {
     switch (this->type) {
     case expression_type::Integer:
@@ -339,6 +371,8 @@ std::string expression::string() const {
         return std::get<match>(this->data).string();
     case expression_type::Function:
         return std::get<function_expression>(this->data).string();
+    case expression_type::Call:
+        return std::get<call>(this->data).string();
     default:
         break;
     }

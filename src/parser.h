@@ -47,6 +47,7 @@ class parser {
     expression parse_if();
     expression parse_match();
     expression parse_function();
+    expression parse_call(expression name_expr);
 
     std::vector<match_branch> parse_match_branches();
     std::optional<match_branch> parse_match_branch();
@@ -54,6 +55,8 @@ class parser {
     std::optional<match_branch_consequence> parse_match_branch_consequence();
 
     std::vector<std::string> parse_function_params();
+
+    std::vector<expression> parse_call_args();
 
     block_statement parse_block();
 

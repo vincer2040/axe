@@ -20,6 +20,8 @@ static precedence get_precedence(token_type type) {
     case token_type::Asterisk:
     case token_type::Slash:
         return precedence::Product;
+    case token_type::LParen:
+        return precedence::Call;
     default:
         break;
     }
@@ -144,6 +146,10 @@ expression parser::parse_expression(precedence precedence) {
             this->next_token();
             expression =
                 this->parse_infix(infix_operator::NotEq, std::move(expression));
+            break;
+        case token_type::LParen:
+            this->next_token();
+            expression = this->parse_call(std::move(expression));
             break;
         default:
             return expression;
@@ -271,6 +277,19 @@ expression parser::parse_function() {
     return expression(expression_type::Function, std::move(function));
 }
 
+expression parser::parse_call(expression name_expr) {
+    if (name_expr.get_type() != expression_type::Ident) {
+        std::string err = "expected Ident expression, got " +
+                          std::string(name_expr.type_to_string());
+        this->errors.push_back(err);
+        return expression();
+    }
+    auto name = name_expr.get_ident();
+    auto args = this->parse_call_args();
+    call call(std::move(name), std::move(args));
+    return expression(expression_type::Call, std::move(call));
+}
+
 std::vector<match_branch> parser::parse_match_branches() {
     std::vector<match_branch> res;
     this->next_token();
@@ -352,6 +371,27 @@ parser::parse_match_branch_consequence() {
     }
     return match_branch_consequence(match_branch_consequence_type::Expression,
                                     std::move(exp));
+}
+
+std::vector<expression> parser::parse_call_args() {
+    std::vector<expression> res;
+    if (this->peek_token_is(token_type::RParen)) {
+        this->next_token();
+        return res;
+    }
+    this->next_token();
+    auto arg = this->parse_expression(precedence::Lowest);
+    res.push_back(std::move(arg));
+    while (this->peek_token_is(token_type::Comma)) {
+        this->next_token();
+        this->next_token();
+        arg = this->parse_expression(precedence::Lowest);
+        res.push_back(std::move(arg));
+    }
+    if (!this->expect_peek(token_type::RParen)) {
+        res.clear();
+    }
+    return res;
 }
 
 block_statement parser::parse_block() {

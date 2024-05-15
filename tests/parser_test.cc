@@ -192,6 +192,10 @@ TEST(Parser, OperatorPrecedence) {
         {"2 / (5 + 5)", "(2 / (5 + 5))"},
         {"-(5 + 5)", "(-(5 + 5))"},
         {"!(true == true)", "(!(true == true))"},
+        {"a + add(b * c) + d", "((a + add((b * c))) + d)"},
+        {"add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+         "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))"},
+        {"add(a + b + c * d / f + g)", "add((((a + b) + ((c * d) / f)) + g))"},
     };
 
     for (auto& test : tests) {
@@ -500,4 +504,27 @@ TEST(Parser, Functions) {
     }
     auto body_str = function.get_body().string();
     EXPECT_STREQ(body_str.c_str(), "(a + b)");
+}
+
+TEST(Parser, Call) {
+    std::string input = "add(1, 2)";
+    axe::lexer lexer(input);
+    axe::parser parser(lexer);
+    auto ast = parser.parse();
+    check_errors(parser);
+    auto& statements = ast.get_statements();
+    EXPECT_EQ(statements.size(), 1);
+    auto& statement = statements[0];
+    EXPECT_EQ(statement.get_type(), axe::statement_type::ExpressionStatement);
+    auto& expression = statement.get_expression();
+    EXPECT_EQ(expression.get_type(), axe::expression_type::Call);
+    auto& call = expression.get_call();
+    EXPECT_STREQ(call.get_name().c_str(), "add");
+    int64_t expected_args[] = {1, 2};
+    size_t length = sizeof expected_args / sizeof expected_args[0];
+    auto& args = call.get_args();
+    EXPECT_EQ(args.size(), length);
+    for (size_t i = 0; i < length; ++i) {
+        test_integer(args[i], expected_args[i]);
+    }
 }

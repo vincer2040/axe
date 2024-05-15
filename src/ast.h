@@ -187,6 +187,20 @@ class function_expression : public ast_node {
     block_statement body;
 };
 
+class call : public ast_node {
+  public:
+    call(std::string name, std::vector<class expression> args);
+
+    const std::string& get_name() const;
+    const std::vector<class expression>& get_args() const;
+
+    std::string string() const;
+
+  private:
+    std::string name;
+    std::vector<class expression> args;
+};
+
 enum class expression_type {
     Illegal,
     Integer,
@@ -198,11 +212,12 @@ enum class expression_type {
     If,
     Match,
     Function,
+    Call,
 };
 
 using expression_data =
     std::variant<std::monostate, int64_t, double, bool, std::string, prefix,
-                 infix, if_expression, match, function_expression>;
+                 infix, if_expression, match, function_expression, call>;
 
 class expression : public ast_node {
   public:
@@ -219,6 +234,9 @@ class expression : public ast_node {
     const if_expression& get_if() const;
     const match& get_match() const;
     const function_expression& get_function() const;
+    const call& get_call() const;
+
+    const char* type_to_string() const;
 
     std::string string() const;
 
