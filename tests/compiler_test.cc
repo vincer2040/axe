@@ -66,6 +66,7 @@ TEST(Compiler, IntegerArithmatic) {
             {
                 axe::make(axe::op_code::OpConstant, {0}),
                 axe::make(axe::op_code::OpConstant, {1}),
+                axe::make(axe::op_code::OpAdd, {}),
             },
         },
     };

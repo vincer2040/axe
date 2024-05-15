@@ -36,6 +36,7 @@ class object {
     bool is_error() const;
 
     bool operator==(const object& other) const;
+    object operator+(const object& rhs) const;
 
   private:
     object_type type;

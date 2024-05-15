@@ -9,11 +9,10 @@ struct make_test {
 
 TEST(Code, Make) {
     make_test tests[] = {
-        {
-            axe::op_code::OpConstant,
-            {65534},
-            {(uint8_t)axe::op_code::OpConstant, 255, 254},
-        },
+        {axe::op_code::OpConstant,
+         {65534},
+         {(uint8_t)axe::op_code::OpConstant, 255, 254}},
+        {axe::op_code::OpAdd, {}, {(uint8_t)axe::op_code::OpAdd}},
     };
 
     for (auto& test : tests) {
@@ -27,15 +26,15 @@ TEST(Code, Make) {
 
 TEST(Code, InstructionString) {
     axe::instructions instructions[] = {
-        axe::make(axe::op_code::OpConstant, {1}),
+        axe::make(axe::op_code::OpAdd, {}),
         axe::make(axe::op_code::OpConstant, {2}),
         axe::make(axe::op_code::OpConstant, {65535}),
     };
 
     std::string expected = "\
-0000 OpConstant 1\n\
-0003 OpConstant 2\n\
-0006 OpConstant 65535\n\
+0000 OpAdd\n\
+0001 OpConstant 2\n\
+0004 OpConstant 65535\n\
 ";
     axe::instructions concatted;
     for (auto& ins : instructions) {

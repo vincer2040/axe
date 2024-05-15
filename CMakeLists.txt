@@ -49,6 +49,11 @@ add_library(
     src/compiler.cc
 )
 
+add_library(
+    vm
+    src/vm.cc
+)
+
 add_executable(
     axec
     src/main.cc
@@ -71,4 +76,9 @@ target_link_libraries(
     lexer
     token
     ast
+)
+
+target_link_libraries(
+    vm
+    object
 )

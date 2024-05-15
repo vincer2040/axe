@@ -13,6 +13,7 @@ using instructions = std::vector<uint8_t>;
 
 enum class op_code {
     OpConstant = 0,
+    OpAdd = 1,
 };
 
 class definition {
@@ -29,6 +30,8 @@ class definition {
 std::optional<const definition> lookup(op_code op);
 
 std::vector<uint8_t> make(op_code op, const std::vector<int> operands);
+
+uint16_t read_u16(const instructions& ins, int offset);
 
 std::string instructions_string(const instructions& ins);
 

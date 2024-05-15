@@ -20,6 +20,11 @@ add_executable(
     compiler_test.cc
 )
 
+add_executable(
+    vm_test
+    vm_test.cc
+)
+
 target_link_libraries(
     lexer_test
     GTest::gtest_main
@@ -55,9 +60,23 @@ target_link_libraries(
     object
 )
 
+target_link_libraries(
+    vm_test
+    GTest::gtest_main
+    GTest::gmock_main
+    compiler
+    code
+    lexer
+    parser
+    ast
+    object
+    vm
+)
+
 include(GoogleTest)
 
 gtest_discover_tests(lexer_test)
 gtest_discover_tests(parser_test)
 gtest_discover_tests(code_test)
 gtest_discover_tests(compiler_test)
+gtest_discover_tests(vm_test)

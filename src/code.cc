@@ -17,6 +17,7 @@ const std::vector<int>& definition::get_operand_widths() const {
 
 static const std::unordered_map<op_code, definition> definitions = {
     {op_code::OpConstant, definition("OpConstant", {2})},
+    {op_code::OpAdd, definition("OpAdd", {})},
 };
 
 std::optional<const definition> lookup(op_code op) {
@@ -69,6 +70,8 @@ std::string format_instructions(const definition& def,
         return res;
     }
     switch (operand_count) {
+    case 0:
+        return std::string(def.get_name());
     case 1:
         res += std::string(def.get_name()) + " " + std::to_string(operands[0]);
         return res;
@@ -103,7 +106,7 @@ std::string instructions_string(const instructions& ins) {
     return res;
 }
 
-uint16_t read_big_endian_u16(const instructions& ins, int offset) {
+uint16_t read_u16(const instructions& ins, int offset) {
     uint16_t res = static_cast<uint16_t>(ins[offset] << 8);
     offset++;
     res |= static_cast<uint16_t>(ins[offset]);
@@ -119,7 +122,7 @@ const std::pair<std::vector<int>, int> read_operands(const definition& def,
     for (auto& width : operand_widths) {
         switch (width) {
         case 2:
-            operands.push_back(read_big_endian_u16(ins, offset));
+            operands.push_back(read_u16(ins, offset));
             break;
         }
         offset += width;

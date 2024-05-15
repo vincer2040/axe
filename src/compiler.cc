@@ -1,4 +1,5 @@
 #include "compiler.h"
+#include "ast.h"
 #include "code.h"
 #include <optional>
 
@@ -74,6 +75,16 @@ std::optional<std::string> compiler::compile_infix(const infix& infix) {
     err = this->compile_expression(*infix.get_rhs());
     if (err.has_value()) {
         return err;
+    }
+
+    switch (infix.get_op()) {
+    case infix_operator::Plus:
+        this->emit(op_code::OpAdd, {});
+        break;
+    default: {
+        auto err = "unknown operator " + std::to_string((int)infix.get_op());
+        return err;
+    }
     }
     return std::nullopt;
 }
