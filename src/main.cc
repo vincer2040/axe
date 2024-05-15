@@ -1,5 +1,6 @@
+#include "ast.h"
 #include "lexer.h"
-#include "token.h"
+#include "parser.h"
 #include <iostream>
 #include <string>
 
@@ -11,24 +12,27 @@ std::string read_line(const char* prompt) {
     return line;
 }
 
-void print_tokens(axe::lexer& lexer) {
-    while (true) {
-        axe::token tok = lexer.next_token();
-        std::cout << tok.string() << '\n';
-        if (tok.get_type() == axe::token_type::Eof) {
-            break;
-        }
+bool check_errors(const axe::parser& parser) {
+    for (auto& err : parser.get_errors()) {
+        std::cout << err << '\n';
     }
+    return parser.get_errors().size() != 0;
 }
 
 void main_loop() {
-    for (;;) {
+    while (true) {
         std::string line = read_line(">>> ");
         if (line == "exit") {
             break;
         }
         axe::lexer lexer(line);
-        print_tokens(lexer);
+        axe::parser parser(lexer);
+        auto ast = parser.parse();
+        if (check_errors(parser)) {
+            continue;
+        }
+        auto ast_str = ast.string();
+        std::cout << ast_str << '\n';
     }
 }
 

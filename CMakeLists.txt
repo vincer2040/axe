@@ -42,6 +42,8 @@ add_executable(
 target_link_libraries(
     axec
     lexer
+    parser
+    ast
 )
 
 target_link_libraries(
