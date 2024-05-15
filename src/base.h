@@ -13,6 +13,7 @@
             fprintf(stderr, __VA_ARGS__);                                      \
             fprintf(stderr, "\n");                                             \
             fflush(stderr);                                                    \
+            abort();                                                           \
         }                                                                      \
     } while (0)
 
