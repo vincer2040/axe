@@ -277,6 +277,10 @@ const char* const expression_type_strings[] = {
 
 expression_type expression::get_type() const { return this->type; }
 
+const char* expression::get_type_string() const {
+    return expression_type_strings[(int)this->type];
+}
+
 const char* expression::type_to_string() const {
     return expression_type_strings[(int)this->type];
 }

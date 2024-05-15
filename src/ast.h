@@ -226,6 +226,7 @@ class expression : public ast_node {
     expression(expression_type type, expression_data data);
 
     expression_type get_type() const;
+    const char* get_type_string() const;
     int64_t get_int() const;
     double get_float() const;
     bool get_bool() const;
