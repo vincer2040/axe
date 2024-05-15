@@ -34,6 +34,21 @@ add_library(
     src/ast.cc
 )
 
+add_library(
+    object
+    src/object.cc
+)
+
+add_library(
+    code
+    src/code.cc
+)
+
+add_library(
+    compiler
+    src/compiler.cc
+)
+
 add_executable(
     axec
     src/main.cc
