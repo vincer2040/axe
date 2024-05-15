@@ -111,6 +111,9 @@ expression parser::parse_expression(precedence precedence) {
     case token_type::False:
         expression = this->parse_bool(false);
         break;
+    case token_type::String:
+        expression = this->parse_string();
+        break;
     case token_type::Ident:
         expression = this->parse_ident();
         break;
@@ -206,6 +209,11 @@ expression parser::parse_float() {
 
 expression parser::parse_bool(bool value) {
     return expression(expression_type::Bool, value);
+}
+
+expression parser::parse_string() {
+    auto value = this->cur_token.get_literal();
+    return expression(expression_type::String, std::move(value));
 }
 
 expression parser::parse_ident() {

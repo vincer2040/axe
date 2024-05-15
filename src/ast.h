@@ -206,6 +206,7 @@ enum class expression_type {
     Integer,
     Float,
     Bool,
+    String,
     Ident,
     Prefix,
     Infix,
@@ -228,6 +229,7 @@ class expression : public ast_node {
     int64_t get_int() const;
     double get_float() const;
     bool get_bool() const;
+    const std::string& get_string() const;
     const std::string& get_ident() const;
     const prefix& get_prefix() const;
     const infix& get_infix() const;

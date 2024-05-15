@@ -145,6 +145,32 @@ TEST(Parser, Idents) {
     }
 }
 
+void test_string(const axe::expression& expression, const std::string& expected) {
+    EXPECT_EQ(expression.get_type(), axe::expression_type::String);
+    auto& str = expression.get_string();
+    EXPECT_STREQ(str.c_str(), expected.c_str());
+}
+
+TEST(Parser, Strings) {
+    parser_test<std::string> tests[] = {
+        "\"foo\"", "foo",
+        "\"foo bar\"", "foo bar",
+    };
+    for (auto& test : tests) {
+        axe::lexer l(test.input);
+        axe::parser p(l);
+        auto ast = p.parse();
+        check_errors(p);
+        auto& statements = ast.get_statements();
+        EXPECT_EQ(statements.size(), 1);
+        auto& statement = statements[0];
+        EXPECT_EQ(statement.get_type(),
+                  axe::statement_type::ExpressionStatement);
+        auto& expression = statement.get_expression();
+        test_string(expression, test.expected);
+    }
+}
+
 template <typename T> struct prefix_test {
     std::string input;
     axe::prefix_operator op;
