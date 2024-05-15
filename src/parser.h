@@ -32,8 +32,8 @@ class parser {
     std::vector<std::string> errors;
 
     ast parse_ast();
-    statement parse_statement();
 
+    statement parse_statement();
     statement parse_expression_statement();
 
     expression parse_expression(precedence precedence);
@@ -44,6 +44,9 @@ class parser {
     expression parse_prefix(prefix_operator op);
     expression parse_infix(infix_operator op, expression lhs);
     expression parse_group();
+    expression parse_if();
+
+    block_statement parse_block();
 
     void next_token();
     bool peek_token_is(token_type type);

@@ -58,6 +58,51 @@ std::string prefix::string() const {
     return res;
 }
 
+block_statement::block_statement(std::vector<statement> block)
+    : block(std::move(block)) {}
+
+const std::vector<statement>& block_statement::get_block() const {
+    return this->block;
+}
+
+std::string block_statement::string() const {
+    std::string res;
+    for (auto& statement : this->block) {
+        res += statement.string();
+    }
+    return res;
+}
+
+if_expression::if_expression(std::unique_ptr<expression> cond,
+                             block_statement consequence,
+                             std::optional<block_statement> alternative)
+    : cond(std::move(cond)), consequence(std::move(consequence)),
+      alternative(std::move(alternative)) {}
+
+const std::unique_ptr<expression>& if_expression::get_cond() const {
+    return this->cond;
+}
+
+const block_statement& if_expression::get_consequence() const {
+    return this->consequence;
+}
+
+const std::optional<block_statement>& if_expression::get_alternative() const {
+    return this->alternative;
+}
+
+std::string if_expression::string() const {
+    std::string res = "if ";
+    res += this->cond->string();
+    res += " ";
+    res += this->consequence.string();
+    if (this->alternative.has_value()) {
+        res += "else ";
+        res += this->alternative->string();
+    }
+    return res;
+}
+
 expression::expression()
     : type(expression_type::Illegal), data(std::monostate()) {}
 
@@ -65,7 +110,7 @@ expression::expression(expression_type type, expression_data data)
     : type(type), data(std::move(data)) {}
 
 const char* const expression_type_strings[] = {
-    "Illegal", "Integer", "Float", "Bool", "Prefix", "Infix",
+    "Illegal", "Integer", "Float", "Bool", "Prefix", "Infix", "If",
 };
 
 expression_type expression::get_type() const { return this->type; }
@@ -112,6 +157,13 @@ const infix& expression::get_infix() const {
     return std::get<infix>(this->data);
 }
 
+const if_expression& expression::get_if() const {
+    AXE_CHECK(this->type == expression_type::If,
+              "trying to get If from type %s",
+              expression_type_strings[(int)this->type]);
+    return std::get<if_expression>(this->data);
+}
+
 std::string expression::string() const {
     switch (this->type) {
     case expression_type::Integer:
@@ -126,6 +178,8 @@ std::string expression::string() const {
         return std::get<prefix>(this->data).string();
     case expression_type::Infix:
         return std::get<infix>(this->data).string();
+    case expression_type::If:
+        return std::get<if_expression>(this->data).string();
     default:
         break;
     }

@@ -63,6 +63,13 @@ TEST(Parser, Floats) {
     }
 }
 
+void test_ident(const axe::expression& expression,
+                const std::string& expected) {
+    EXPECT_EQ(expression.get_type(), axe::expression_type::Ident);
+    auto& value = expression.get_ident();
+    EXPECT_STREQ(value.c_str(), expected.c_str());
+}
+
 TEST(Parser, Idents) {
     parser_test<std::string> tests[] = {
         {"foo;", "foo"},
@@ -81,9 +88,7 @@ TEST(Parser, Idents) {
         EXPECT_EQ(statement.get_type(),
                   axe::statement_type::ExpressionStatement);
         auto& expression = statement.get_expression();
-        EXPECT_EQ(expression.get_type(), axe::expression_type::Ident);
-        auto& value = expression.get_ident();
-        EXPECT_EQ(value, test.expected);
+        test_ident(expression, test.expected);
     }
 }
 
@@ -191,4 +196,103 @@ TEST(Parser, OperatorPrecedence) {
         auto ast_string = ast.string();
         EXPECT_STREQ(ast_string.c_str(), test.expected.c_str());
     }
+}
+
+TEST(Parser, If) {
+    std::string input = "if (x > y) { x }";
+    axe::lexer l(input);
+    axe::parser p(l);
+    auto ast = p.parse();
+    check_errors(p);
+    auto& statements = ast.get_statements();
+    EXPECT_EQ(statements.size(), 1);
+    auto& statement = statements[0];
+    EXPECT_EQ(statement.get_type(), axe::statement_type::ExpressionStatement);
+    auto& expression = statement.get_expression();
+    EXPECT_EQ(expression.get_type(), axe::expression_type::If);
+    auto& if_exp = expression.get_if();
+    auto& cond_exp = if_exp.get_cond();
+    EXPECT_EQ(cond_exp->get_type(), axe::expression_type::Infix);
+    auto& cond = cond_exp->get_infix();
+    EXPECT_EQ(cond.get_op(), axe::infix_operator::Gt);
+    test_ident(*cond.get_lhs(), "x");
+    test_ident(*cond.get_rhs(), "y");
+    auto& consequence = if_exp.get_consequence().get_block();
+    EXPECT_EQ(consequence.size(), 1);
+    auto& consequence_statement = consequence[0];
+    EXPECT_EQ(consequence_statement.get_type(),
+              axe::statement_type::ExpressionStatement);
+    auto& consequence_exp = consequence_statement.get_expression();
+    test_ident(consequence_exp, "x");
+    EXPECT_EQ(if_exp.get_alternative(), std::nullopt);
+}
+
+TEST(Parser, IfElse) {
+    std::string input = "if (x > y) { x } else { y }";
+    axe::lexer l(input);
+    axe::parser p(l);
+    auto ast = p.parse();
+    check_errors(p);
+    auto& statements = ast.get_statements();
+    EXPECT_EQ(statements.size(), 1);
+    auto& statement = statements[0];
+    EXPECT_EQ(statement.get_type(), axe::statement_type::ExpressionStatement);
+    auto& expression = statement.get_expression();
+    EXPECT_EQ(expression.get_type(), axe::expression_type::If);
+    auto& if_exp = expression.get_if();
+    auto& cond_exp = if_exp.get_cond();
+    EXPECT_EQ(cond_exp->get_type(), axe::expression_type::Infix);
+    auto& cond = cond_exp->get_infix();
+    EXPECT_EQ(cond.get_op(), axe::infix_operator::Gt);
+    test_ident(*cond.get_lhs(), "x");
+    test_ident(*cond.get_rhs(), "y");
+    auto& consequence = if_exp.get_consequence().get_block();
+    EXPECT_EQ(consequence.size(), 1);
+    auto& consequence_statement = consequence[0];
+    EXPECT_EQ(consequence_statement.get_type(),
+              axe::statement_type::ExpressionStatement);
+    auto& consequence_exp = consequence_statement.get_expression();
+    test_ident(consequence_exp, "x");
+    auto& alternative = if_exp.get_alternative();
+    EXPECT_TRUE(alternative.has_value());
+    auto& alternative_statement = alternative->get_block()[0];
+    EXPECT_EQ(alternative_statement.get_type(),
+              axe::statement_type::ExpressionStatement);
+    auto& alternative_exp = alternative_statement.get_expression();
+    test_ident(alternative_exp, "y");
+}
+
+TEST(Parser, IfElseNoParen) {
+    std::string input = "if x > y { x } else { y }";
+    axe::lexer l(input);
+    axe::parser p(l);
+    auto ast = p.parse();
+    check_errors(p);
+    auto& statements = ast.get_statements();
+    EXPECT_EQ(statements.size(), 1);
+    auto& statement = statements[0];
+    EXPECT_EQ(statement.get_type(), axe::statement_type::ExpressionStatement);
+    auto& expression = statement.get_expression();
+    EXPECT_EQ(expression.get_type(), axe::expression_type::If);
+    auto& if_exp = expression.get_if();
+    auto& cond_exp = if_exp.get_cond();
+    EXPECT_EQ(cond_exp->get_type(), axe::expression_type::Infix);
+    auto& cond = cond_exp->get_infix();
+    EXPECT_EQ(cond.get_op(), axe::infix_operator::Gt);
+    test_ident(*cond.get_lhs(), "x");
+    test_ident(*cond.get_rhs(), "y");
+    auto& consequence = if_exp.get_consequence().get_block();
+    EXPECT_EQ(consequence.size(), 1);
+    auto& consequence_statement = consequence[0];
+    EXPECT_EQ(consequence_statement.get_type(),
+              axe::statement_type::ExpressionStatement);
+    auto& consequence_exp = consequence_statement.get_expression();
+    test_ident(consequence_exp, "x");
+    auto& alternative = if_exp.get_alternative();
+    EXPECT_TRUE(alternative.has_value());
+    auto& alternative_statement = alternative->get_block()[0];
+    EXPECT_EQ(alternative_statement.get_type(),
+              axe::statement_type::ExpressionStatement);
+    auto& alternative_exp = alternative_statement.get_expression();
+    test_ident(alternative_exp, "y");
 }

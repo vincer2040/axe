@@ -1,6 +1,7 @@
 #include "parser.h"
 #include "ast.h"
 #include "token.h"
+#include <optional>
 #include <utility>
 
 namespace axe {
@@ -86,6 +87,9 @@ expression parser::parse_expression(precedence precedence) {
         break;
     case token_type::LParen:
         expression = this->parse_group();
+        break;
+    case token_type::If:
+        expression = this->parse_if();
         break;
     default:
         this->unknown_token_error(this->cur_token);
@@ -188,6 +192,51 @@ expression parser::parse_group() {
         return expression();
     }
     return res;
+}
+
+expression parser::parse_if() {
+    bool expect_rparen = false;
+    if (this->peek_token_is(token_type::LParen)) {
+        this->next_token();
+        expect_rparen = true;
+    }
+    this->next_token();
+    auto cond = std::make_unique<expression>(
+        this->parse_expression(precedence::Lowest));
+    if (expect_rparen) {
+        if (!this->expect_peek(token_type::RParen)) {
+            return expression();
+        }
+    }
+    if (!this->expect_peek(token_type::LSquirly)) {
+        return expression();
+    }
+    auto consequence = this->parse_block();
+    std::optional<block_statement> alternative = std::nullopt;
+    if (this->peek_token_is(token_type::Else)) {
+        this->next_token();
+        if (!this->expect_peek(token_type::LSquirly)) {
+            return expression();
+        }
+        alternative = this->parse_block();
+    }
+    if_expression if_exp(std::move(cond), std::move(consequence),
+                         std::move(alternative));
+    return expression(expression_type::If, std::move(if_exp));
+}
+
+block_statement parser::parse_block() {
+    std::vector<statement> statements;
+    this->next_token();
+    while (this->cur_token.get_type() != token_type::RSquirly &&
+           this->cur_token.get_type() != token_type::Eof) {
+        auto statement = this->parse_statement();
+        if (statement.get_type() != statement_type::Illegal) {
+            statements.push_back(std::move(statement));
+        }
+        this->next_token();
+    }
+    return block_statement(std::move(statements));
 }
 
 void parser::next_token() {

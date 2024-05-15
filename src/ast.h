@@ -4,6 +4,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
 #include <variant>
 #include <vector>
@@ -62,6 +63,36 @@ class infix : public ast_node {
     std::unique_ptr<class expression> rhs;
 };
 
+class block_statement : public ast_node {
+  public:
+    block_statement(std::vector<class statement> block);
+
+    const std::vector<class statement>& get_block() const;
+
+    std::string string() const;
+
+  private:
+    std::vector<class statement> block;
+};
+
+class if_expression : public ast_node {
+  public:
+    if_expression(std::unique_ptr<class expression> cond,
+                  block_statement consequence,
+                  std::optional<block_statement> alternative);
+
+    const std::unique_ptr<class expression>& get_cond() const;
+    const block_statement& get_consequence() const;
+    const std::optional<block_statement>& get_alternative() const;
+
+    std::string string() const;
+
+  private:
+    std::unique_ptr<class expression> cond;
+    block_statement consequence;
+    std::optional<block_statement> alternative;
+};
+
 enum class expression_type {
     Illegal,
     Integer,
@@ -70,10 +101,11 @@ enum class expression_type {
     Ident,
     Prefix,
     Infix,
+    If,
 };
 
-using expression_data =
-    std::variant<std::monostate, int64_t, double, bool, std::string, prefix, infix>;
+using expression_data = std::variant<std::monostate, int64_t, double, bool,
+                                     std::string, prefix, infix, if_expression>;
 
 class expression : public ast_node {
   public:
@@ -87,6 +119,7 @@ class expression : public ast_node {
     const std::string& get_ident() const;
     const prefix& get_prefix() const;
     const infix& get_infix() const;
+    const if_expression& get_if() const;
 
     std::string string() const;
 
