@@ -82,7 +82,8 @@ std::optional<std::string> compiler::compile_infix(const infix& infix) {
         this->emit(op_code::OpAdd, {});
         break;
     default: {
-        auto err = "unknown operator " + std::to_string((int)infix.get_op());
+        auto err = "unknown operator " +
+                   std::string(infix_operator_string(infix.get_op()));
         return err;
     }
     }

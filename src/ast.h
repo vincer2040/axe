@@ -46,6 +46,8 @@ enum class infix_operator {
     NotEq,
 };
 
+const char* infix_operator_string(infix_operator op);
+
 class infix : public ast_node {
   public:
     infix(infix_operator op, std::unique_ptr<class expression> lhs,

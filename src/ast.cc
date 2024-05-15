@@ -8,6 +8,10 @@ const char* const infix_operator_strings[] = {
     "Plus", "Minus", "Asterisk", "Slash", "Lt", "Gt", "Eq", "NotEq",
 };
 
+const char* infix_operator_string(infix_operator op) {
+    return infix_operator_strings[(int)op];
+}
+
 const char* const infix_operator_string_reps[] = {
     "+", "-", "*", "/", "<", ">", "==", "!=",
 };
