@@ -1,8 +1,10 @@
-#include "ast.h"
+#include "compiler.h"
 #include "lexer.h"
 #include "parser.h"
+#include "vm.h"
 #include <iostream>
 #include <string>
+#include <unistd.h>
 
 std::string read_line(const char* prompt) {
     printf("%s", prompt);
@@ -31,8 +33,24 @@ void main_loop() {
         if (check_errors(parser)) {
             continue;
         }
-        auto ast_str = ast.string();
-        std::cout << ast_str << '\n';
+        axe::compiler compiler;
+        auto err = compiler.compile(ast);
+        if (err.has_value()) {
+            std::cout << *err << '\n';
+            continue;
+        }
+        axe::vm vm(compiler.get_byte_code());
+        err = vm.run();
+        if (err.has_value()) {
+            std::cout << *err << '\n';
+            continue;
+        }
+
+        auto stack_top = vm.stack_top();
+        if (stack_top.has_value()) {
+            auto str = stack_top->string();
+            std::cout << str << '\n';
+        }
     }
 }
 

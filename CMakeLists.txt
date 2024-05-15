@@ -64,6 +64,9 @@ target_link_libraries(
     lexer
     parser
     ast
+    code
+    compiler
+    vm
 )
 
 target_link_libraries(
@@ -75,6 +78,12 @@ target_link_libraries(
     parser
     lexer
     token
+    ast
+)
+
+target_link_libraries(
+    compiler
+    code
     ast
 )
 

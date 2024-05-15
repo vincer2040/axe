@@ -40,10 +40,42 @@ bool object::get_bool() const {
 }
 
 const std::string& object::get_string() const {
-    AXE_CHECK(this->type == object_type::Float,
+    AXE_CHECK(this->type == object_type::String,
               "trying to get String from type %s",
               object_type_strings[(int)this->type]);
     return std::get<std::string>(this->data);
+}
+
+const std::string& object::get_error() const {
+    AXE_CHECK(this->type == object_type::Error,
+              "trying to get Error from type %s",
+              object_type_strings[(int)this->type]);
+    return std::get<std::string>(this->data);
+}
+
+std::string object::string() const {
+    std::string res;
+    switch (this->type) {
+    case object_type::Null:
+        res += "Null";
+        break;
+    case object_type::Bool:
+        res += this->get_bool() ? "true" : "false";
+        break;
+    case object_type::Integer:
+        res += std::to_string(this->get_int());
+        break;
+    case object_type::Float:
+        res += std::to_string(this->get_float());
+        break;
+    case object_type::String:
+        res += "\"" + this->get_string() + "\"";
+        break;
+    case object_type::Error:
+        res += "ERROR: " + this->get_error();
+        break;
+    }
+    return res;
 }
 
 bool object::is_error() const { return this->type == object_type::Error; }

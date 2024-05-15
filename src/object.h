@@ -29,9 +29,10 @@ class object {
     double get_float() const;
     bool get_bool() const;
     const std::string& get_string() const;
+    const std::string& get_error() const;
 
     const char* type_to_strig() const;
-    std::string string();
+    std::string string() const;
 
     bool is_error() const;
 
