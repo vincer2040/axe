@@ -25,6 +25,9 @@ std::optional<std::string> vm::run() {
             auto& lhs = this->pop();
             this->push(lhs + rhs);
         } break;
+        case op_code::OpPop:
+            this->pop();
+            break;
         }
     }
     return std::nullopt;
@@ -35,6 +38,10 @@ std::optional<const object> vm::stack_top() {
         return std::nullopt;
     }
     return this->stack[this->stack_pointer - 1];
+}
+
+const object& vm::last_popped_stack_element() {
+    return this->stack[this->stack_pointer];
 }
 
 std::optional<std::string> vm::push(object obj) {

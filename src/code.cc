@@ -1,5 +1,4 @@
 #include "code.h"
-#include <netinet/in.h>
 #include <optional>
 #include <stdint.h>
 #include <unordered_map>
@@ -18,6 +17,7 @@ const std::vector<int>& definition::get_operand_widths() const {
 static const std::unordered_map<op_code, definition> definitions = {
     {op_code::OpConstant, definition("OpConstant", {2})},
     {op_code::OpAdd, definition("OpAdd", {})},
+    {op_code::OpPop, definition("OpPop", {})},
 };
 
 std::optional<const definition> lookup(op_code op) {

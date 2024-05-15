@@ -43,21 +43,28 @@ compiler::compile_statements(const std::vector<statement>& statements) {
 
 std::optional<std::string>
 compiler::compile_statement(const statement& statement) {
-    return this->compile_expression(statement.get_expression());
+    auto err = this->compile_expression(statement.get_expression());
+    if (err.has_value()) {
+        return err;
+    }
+    this->emit(op_code::OpPop, {});
+    return std::nullopt;
 }
 
 std::optional<std::string>
 compiler::compile_expression(const expression& expression) {
+    std::optional<std::string> err = std::nullopt;
     switch (expression.get_type()) {
     case expression_type::Integer:
-        return this->compile_integer(expression.get_int());
+        err = this->compile_integer(expression.get_int());
+        break;
     case expression_type::Infix:
-        return this->compile_infix(expression.get_infix());
+        err = this->compile_infix(expression.get_infix());
+        break;
     default:
+        err = "cannot compile " + std::string(expression.get_type_string());
         break;
     }
-    std::string err =
-        "cannot compile " + std::string(expression.get_type_string());
     return err;
 }
 

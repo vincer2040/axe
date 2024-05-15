@@ -17,6 +17,7 @@ class vm {
 
         std::optional<std::string> run();
         std::optional<const object> stack_top();
+        const object& last_popped_stack_element();
     private:
         std::vector<object> constants;
         instructions ins;

@@ -67,6 +67,18 @@ TEST(Compiler, IntegerArithmatic) {
                 axe::make(axe::op_code::OpConstant, {0}),
                 axe::make(axe::op_code::OpConstant, {1}),
                 axe::make(axe::op_code::OpAdd, {}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
+        {
+            "1; 2",
+            {axe::object(axe::object_type::Integer, 1),
+             axe::object(axe::object_type::Integer, 2)},
+            {
+                axe::make(axe::op_code::OpConstant, {0}),
+                axe::make(axe::op_code::OpPop, {}),
+                axe::make(axe::op_code::OpConstant, {1}),
+                axe::make(axe::op_code::OpPop, {}),
             },
         },
     };

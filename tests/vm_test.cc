@@ -35,14 +35,15 @@ void run_vm_int_test(const vm_test<int64_t>& test) {
         std::cout << *err << '\n';
     }
     EXPECT_FALSE(err.has_value());
-    auto stack_elem = vm.stack_top();
-    EXPECT_TRUE(stack_elem.has_value());
-    test_integer(*stack_elem, test.expected);
+    auto stack_elem = vm.last_popped_stack_element();
+    test_integer(stack_elem, test.expected);
 }
 
 TEST(VM, IntegerArithmatic) {
     vm_test<int64_t> tests[] = {
-        {"1", 1}, {"2", 2}, {"1 + 2", 3},
+        {"1", 1},
+        {"2", 2},
+        {"1 + 2", 3},
     };
 
     for (auto& test : tests) {

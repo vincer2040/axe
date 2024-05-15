@@ -14,6 +14,7 @@ using instructions = std::vector<uint8_t>;
 enum class op_code {
     OpConstant = 0,
     OpAdd = 1,
+    OpPop = 2,
 };
 
 class definition {

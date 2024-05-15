@@ -46,11 +46,9 @@ void main_loop() {
             continue;
         }
 
-        auto stack_top = vm.stack_top();
-        if (stack_top.has_value()) {
-            auto str = stack_top->string();
-            std::cout << str << '\n';
-        }
+        auto stack_top = vm.last_popped_stack_element();
+        auto str = stack_top.string();
+        std::cout << str << '\n';
     }
 }
 
