@@ -46,9 +46,7 @@ static void test_constants(const std::vector<axe::object> expected,
 
 static void run_compiler_test(const compiler_test& test) {
     auto ast = parse(test.input);
-    std::vector<axe::object> constants;
-    axe::symbol_table table;
-    axe::compiler compiler(table, constants);
+    axe::compiler<std::vector<axe::object>, axe::symbol_table> compiler;
     auto err = compiler.compile(ast);
     if (err.has_value()) {
         std::cout << *err << '\n';

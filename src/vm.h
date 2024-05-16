@@ -12,10 +12,10 @@
 
 namespace axe {
 
-class vm {
+template <typename GlobalsLifeTime> class vm {
   public:
     vm(byte_code byte_code);
-    vm(byte_code byte_code, std::vector<object>& globals);
+    vm(byte_code byte_code, GlobalsLifeTime globals);
 
     std::optional<std::string> run();
     std::optional<const object> stack_top();
@@ -25,7 +25,7 @@ class vm {
     std::vector<object> constants;
     instructions ins;
     object stack[STACK_SIZE];
-    std::vector<object>& globals;
+    GlobalsLifeTime globals;
     size_t stack_pointer;
 
     std::optional<std::string> push(const object& obj);

@@ -19,19 +19,20 @@ struct emitted_instruction {
     size_t position;
 };
 
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
 class compiler {
   public:
-    compiler() = delete;
-    compiler(symbol_table& symb_table, std::vector<object>& constants);
+    compiler();
+    compiler(SymbolTableLifeTime symb_table, ConstantsLifeTime constants);
     std::optional<std::string> compile(const ast& ast);
     const byte_code get_byte_code() const;
 
   private:
     instructions ins;
-    std::vector<object>& constants;
+    ConstantsLifeTime constants;
     emitted_instruction last_instruction;
     emitted_instruction previous_instruction;
-    symbol_table& symb_table;
+    SymbolTableLifeTime symb_table;
 
     size_t emit(op_code op, const std::vector<int> operands);
     size_t add_instruction(const std::vector<uint8_t> ins);

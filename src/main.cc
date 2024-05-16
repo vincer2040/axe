@@ -36,13 +36,15 @@ void main_loop() {
         if (check_errors(parser)) {
             continue;
         }
-        axe::compiler compiler(symbol_table, constants);
+        axe::compiler<std::vector<axe::object>&, axe::symbol_table&> compiler(
+            symbol_table, constants);
         auto err = compiler.compile(ast);
         if (err.has_value()) {
             std::cout << *err << '\n';
             continue;
         }
-        axe::vm vm(compiler.get_byte_code(), globals);
+        axe::vm<std::vector<axe::object>&> vm(compiler.get_byte_code(),
+                                              globals);
         err = vm.run();
         if (err.has_value()) {
             std::cout << *err << '\n';

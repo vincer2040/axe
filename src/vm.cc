@@ -4,19 +4,18 @@
 
 namespace axe {
 
-// current work around to keep objects around
-// in between repl state
-static std::vector<object> global_globals(GLOBALS_SIZE, object());
-
-vm::vm(byte_code byte_code)
+template <>
+vm<std::vector<object>>::vm(byte_code byte_code)
     : constants(std::move(byte_code.constants)), ins(std::move(byte_code.ins)),
-      globals(global_globals), stack_pointer(0) {}
+      globals(std::vector<object>(GLOBALS_SIZE, object())), stack_pointer(0) {}
 
-vm::vm(byte_code byte_code, std::vector<object>& globals)
+template <typename GlobalsLifeTime>
+vm<GlobalsLifeTime>::vm(byte_code byte_code, GlobalsLifeTime globals)
     : constants(std::move(byte_code.constants)), ins(std::move(byte_code.ins)),
       globals(globals), stack_pointer(0) {}
 
-std::optional<std::string> vm::run() {
+template <typename GlobalsLifeTime>
+std::optional<std::string> vm<GlobalsLifeTime>::run() {
     std::optional<std::string> err = std::nullopt;
     for (size_t instruction_pointer = 0; instruction_pointer < this->ins.size();
          ++instruction_pointer) {
@@ -121,18 +120,21 @@ std::optional<std::string> vm::run() {
     return err;
 }
 
-std::optional<const object> vm::stack_top() {
+template <typename GlobalsLifeTime>
+std::optional<const object> vm<GlobalsLifeTime>::stack_top() {
     if (this->stack_pointer == 0) {
         return std::nullopt;
     }
     return this->stack[this->stack_pointer - 1];
 }
 
-const object& vm::last_popped_stack_element() {
+template <typename GlobalsLifeTime>
+const object& vm<GlobalsLifeTime>::last_popped_stack_element() {
     return this->stack[this->stack_pointer];
 }
 
-std::optional<std::string> vm::push(const object& obj) {
+template <typename GlobalsLifeTime>
+std::optional<std::string> vm<GlobalsLifeTime>::push(const object& obj) {
     if (this->stack_pointer >= STACK_SIZE) {
         return "stack overflow";
     }
@@ -141,10 +143,13 @@ std::optional<std::string> vm::push(const object& obj) {
     return std::nullopt;
 }
 
-const object& vm::pop() {
+template <typename GlobalsLifeTime> const object& vm<GlobalsLifeTime>::pop() {
     auto& res = this->stack[this->stack_pointer - 1];
     this->stack_pointer--;
     return res;
 }
+
+template class vm<std::vector<object>>;
+template class vm<std::vector<object>&>;
 
 } // namespace axe

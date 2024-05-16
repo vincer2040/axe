@@ -23,15 +23,13 @@ template <typename T> struct vm_test {
 
 void run_vm_int_test(const vm_test<int64_t>& test) {
     auto ast = parse(test.input);
-    std::vector<axe::object> constants;
-    axe::symbol_table table;
-    axe::compiler compiler(table, constants);
+    axe::compiler<std::vector<axe::object>, axe::symbol_table> compiler;
     auto err = compiler.compile(std::move(ast));
     if (err.has_value()) {
         std::cout << *err << '\n';
     }
     EXPECT_FALSE(err.has_value());
-    axe::vm vm(compiler.get_byte_code());
+    axe::vm<std::vector<axe::object>> vm(compiler.get_byte_code());
     err = vm.run();
     if (err.has_value()) {
         std::cout << *err << '\n';
@@ -73,15 +71,13 @@ void test_bool(const axe::object& got, bool expected) {
 
 void run_vm_bool_test(const vm_test<bool>& test) {
     auto ast = parse(test.input);
-    std::vector<axe::object> constants;
-    axe::symbol_table table;
-    axe::compiler compiler(table, constants);
+    axe::compiler<std::vector<axe::object>, axe::symbol_table> compiler;
     auto err = compiler.compile(std::move(ast));
     if (err.has_value()) {
         std::cout << *err << '\n';
     }
     EXPECT_FALSE(err.has_value());
-    axe::vm vm(compiler.get_byte_code());
+    axe::vm<std::vector<axe::object>> vm(compiler.get_byte_code());
     err = vm.run();
     if (err.has_value()) {
         std::cout << *err << '\n';
@@ -145,15 +141,13 @@ TEST(VM, Conditionals) {
 
 void run_vm_null_test(const std::string& test) {
     auto ast = parse(test);
-    std::vector<axe::object> constants;
-    axe::symbol_table table;
-    axe::compiler compiler(table, constants);
+    axe::compiler<std::vector<axe::object>, axe::symbol_table> compiler;
     auto err = compiler.compile(std::move(ast));
     if (err.has_value()) {
         std::cout << *err << '\n';
     }
     EXPECT_FALSE(err.has_value());
-    axe::vm vm(compiler.get_byte_code());
+    axe::vm<std::vector<axe::object>> vm(compiler.get_byte_code());
     err = vm.run();
     if (err.has_value()) {
         std::cout << *err << '\n';

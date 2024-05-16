@@ -6,66 +6,89 @@
 
 namespace axe {
 
-compiler::compiler(symbol_table& symb_table, std::vector<object>& constants)
+template <> compiler<std::vector<object>, symbol_table>::compiler() {}
+
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+compiler<ConstantsLifeTime, SymbolTableLifeTime>::compiler(
+    SymbolTableLifeTime symb_table, ConstantsLifeTime constants)
     : symb_table(symb_table), constants(constants) {}
 
-std::optional<std::string> compiler::compile(const ast& ast) {
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+std::optional<std::string>
+compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile(const ast& ast) {
     return this->compile_statements(ast.get_statements());
 }
 
-const byte_code compiler::get_byte_code() const {
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+const byte_code
+compiler<ConstantsLifeTime, SymbolTableLifeTime>::get_byte_code() const {
     return {this->ins, this->constants};
 }
 
-size_t compiler::emit(op_code op, const std::vector<int> operands) {
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+size_t compiler<ConstantsLifeTime, SymbolTableLifeTime>::emit(
+    op_code op, const std::vector<int> operands) {
     auto instructions = make(op, operands);
     int pos = this->add_instruction(instructions);
     this->set_last_instruction(op, pos);
     return pos;
 }
 
-size_t compiler::add_instruction(const std::vector<uint8_t> ins) {
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+size_t compiler<ConstantsLifeTime, SymbolTableLifeTime>::add_instruction(
+    const std::vector<uint8_t> ins) {
     size_t pos_new_instruction = this->ins.size();
     this->ins.insert(this->ins.end(), ins.begin(), ins.end());
     return pos_new_instruction;
 }
 
-int compiler::add_constant(object obj) {
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+int compiler<ConstantsLifeTime, SymbolTableLifeTime>::add_constant(object obj) {
     this->constants.push_back(std::move(obj));
     return this->constants.size() - 1;
 }
 
-void compiler::set_last_instruction(op_code op, size_t position) {
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+void compiler<ConstantsLifeTime, SymbolTableLifeTime>::set_last_instruction(
+    op_code op, size_t position) {
     emitted_instruction last = {op, position};
     emitted_instruction previous = this->last_instruction;
     this->previous_instruction = previous;
     this->last_instruction = last;
 }
 
-bool compiler::last_instruction_is_pop() {
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+bool compiler<ConstantsLifeTime,
+              SymbolTableLifeTime>::last_instruction_is_pop() {
     return this->last_instruction.op == op_code::OpPop;
 }
 
-void compiler::remove_last_pop() {
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+void compiler<ConstantsLifeTime, SymbolTableLifeTime>::remove_last_pop() {
     this->ins.pop_back();
     this->last_instruction = this->previous_instruction;
 }
 
-void compiler::replace_instruction(size_t position,
-                                   std::vector<uint8_t> new_instruction) {
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+void compiler<ConstantsLifeTime, SymbolTableLifeTime>::replace_instruction(
+    size_t position, std::vector<uint8_t> new_instruction) {
     for (size_t i = 0; i < new_instruction.size(); ++i) {
         this->ins[position + i] = new_instruction[i];
     }
 }
 
-void compiler::change_operand(size_t op_position, int operand) {
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+void compiler<ConstantsLifeTime, SymbolTableLifeTime>::change_operand(
+    size_t op_position, int operand) {
     op_code op = static_cast<op_code>(this->ins[op_position]);
     auto new_instruction = make(op, {operand});
     this->replace_instruction(op_position, new_instruction);
 }
 
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
 std::optional<std::string>
-compiler::compile_statements(const std::vector<statement>& statements) {
+compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_statements(
+    const std::vector<statement>& statements) {
     for (auto& statement : statements) {
         auto err = this->compile_statement(statement);
         if (err.has_value()) {
@@ -75,8 +98,10 @@ compiler::compile_statements(const std::vector<statement>& statements) {
     return std::nullopt;
 }
 
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
 std::optional<std::string>
-compiler::compile_statement(const statement& statement) {
+compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_statement(
+    const statement& statement) {
     std::optional<std::string> err = std::nullopt;
     switch (statement.get_type()) {
     case statement_type::LetStatement:
@@ -92,8 +117,10 @@ compiler::compile_statement(const statement& statement) {
     return err;
 }
 
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
 std::optional<std::string>
-compiler::compile_let_statement(const let_statement& let) {
+compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_let_statement(
+    const let_statement& let) {
     auto err = this->compile_expression(let.get_value());
     if (err.has_value()) {
         return err;
@@ -103,8 +130,10 @@ compiler::compile_let_statement(const let_statement& let) {
     return std::nullopt;
 }
 
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
 std::optional<std::string>
-compiler::compile_expression(const expression& expression) {
+compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_expression(
+    const expression& expression) {
     std::optional<std::string> err = std::nullopt;
     switch (expression.get_type()) {
     case expression_type::Integer:
@@ -133,13 +162,19 @@ compiler::compile_expression(const expression& expression) {
     return err;
 }
 
-std::optional<std::string> compiler::compile_integer(int64_t value) {
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+std::optional<std::string>
+compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_integer(
+    int64_t value) {
     object obj(object_type::Integer, value);
     this->emit(op_code::OpConstant, {this->add_constant(std::move(obj))});
     return std::nullopt;
 }
 
-std::optional<std::string> compiler::compile_ident(const std::string& ident) {
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+std::optional<std::string>
+compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_ident(
+    const std::string& ident) {
     auto symbol = this->symb_table.resolve(ident);
     if (!symbol.has_value()) {
         return "undefined variable " + ident;
@@ -148,7 +183,10 @@ std::optional<std::string> compiler::compile_ident(const std::string& ident) {
     return std::nullopt;
 }
 
-std::optional<std::string> compiler::compile_prefix(const prefix& prefix) {
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+std::optional<std::string>
+compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_prefix(
+    const prefix& prefix) {
     auto err = this->compile_expression(*prefix.get_rhs());
     if (err.has_value()) {
         return err;
@@ -164,7 +202,10 @@ std::optional<std::string> compiler::compile_prefix(const prefix& prefix) {
     return std::nullopt;
 }
 
-std::optional<std::string> compiler::compile_infix(const infix& infix) {
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+std::optional<std::string>
+compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_infix(
+    const infix& infix) {
 
     if (infix.get_op() == infix_operator::Lt) {
         auto err = this->compile_expression(*infix.get_rhs());
@@ -219,7 +260,10 @@ std::optional<std::string> compiler::compile_infix(const infix& infix) {
     return std::nullopt;
 }
 
-std::optional<std::string> compiler::compile_if(const if_expression& if_exp) {
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+std::optional<std::string>
+compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_if(
+    const if_expression& if_exp) {
     auto err = this->compile_expression(*if_exp.get_cond());
     if (err.has_value()) {
         return err;
@@ -258,9 +302,14 @@ std::optional<std::string> compiler::compile_if(const if_expression& if_exp) {
     return std::nullopt;
 }
 
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
 std::optional<std::string>
-compiler::compile_block(const block_statement& block) {
+compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_block(
+    const block_statement& block) {
     return this->compile_statements(block.get_block());
 }
+
+template class compiler<std::vector<object>, symbol_table>;
+template class compiler<std::vector<object>&, symbol_table&>;
 
 } // namespace axe
