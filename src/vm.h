@@ -24,7 +24,7 @@ class vm {
         object stack[STACK_SIZE];
         size_t stack_pointer;
 
-        std::optional<std::string> push(object obj);
+        std::optional<std::string> push(const object& obj);
         const object& pop();
 };
 

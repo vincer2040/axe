@@ -51,6 +51,21 @@ std::optional<std::string> vm::run() {
         case op_code::OpFalse:
             err = this->push(object(object_type::Bool, false));
             break;
+        case op_code::OpEq: {
+            auto& rhs = this->pop();
+            auto& lhs = this->pop();
+            err = this->push(object(object_type::Bool, lhs == rhs));
+        } break;
+        case op_code::OpNotEq: {
+            auto& rhs = this->pop();
+            auto& lhs = this->pop();
+            err = this->push(object(object_type::Bool, lhs != rhs));
+        } break;
+        case op_code::OpGreaterThan: {
+            auto& rhs = this->pop();
+            auto& lhs = this->pop();
+            err = this->push(object(object_type::Bool, lhs > rhs));
+        } break;
         }
     }
     return err;
@@ -67,7 +82,7 @@ const object& vm::last_popped_stack_element() {
     return this->stack[this->stack_pointer];
 }
 
-std::optional<std::string> vm::push(object obj) {
+std::optional<std::string> vm::push(const object& obj) {
     if (this->stack_pointer >= STACK_SIZE) {
         return "stack overflow";
     }

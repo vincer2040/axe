@@ -20,6 +20,9 @@ enum class op_code {
     OpDiv = 5,
     OpTrue = 6,
     OpFalse = 7,
+    OpEq = 8,
+    OpNotEq = 9,
+    OpGreaterThan = 10,
 };
 
 class definition {

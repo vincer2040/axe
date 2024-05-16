@@ -114,6 +114,70 @@ TEST(Compiler, IntegerArithmatic) {
                 axe::make(axe::op_code::OpPop, {}),
             },
         },
+        {
+            "1 > 2",
+            {axe::object(axe::object_type::Integer, 1),
+                axe::object(axe::object_type::Integer, 2)},
+            {
+                axe::make(axe::op_code::OpConstant, {0}),
+                axe::make(axe::op_code::OpConstant, {1}),
+                axe::make(axe::op_code::OpGreaterThan, {}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
+        {
+            "1 < 2",
+            {axe::object(axe::object_type::Integer, 2),
+                axe::object(axe::object_type::Integer, 1)},
+            {
+                axe::make(axe::op_code::OpConstant, {0}),
+                axe::make(axe::op_code::OpConstant, {1}),
+                axe::make(axe::op_code::OpGreaterThan, {}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
+        {
+            "1 == 2",
+            {axe::object(axe::object_type::Integer, 1),
+                axe::object(axe::object_type::Integer, 2)},
+            {
+                axe::make(axe::op_code::OpConstant, {0}),
+                axe::make(axe::op_code::OpConstant, {1}),
+                axe::make(axe::op_code::OpEq, {}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
+        {
+            "1 != 2",
+            {axe::object(axe::object_type::Integer, 1),
+                axe::object(axe::object_type::Integer, 2)},
+            {
+                axe::make(axe::op_code::OpConstant, {0}),
+                axe::make(axe::op_code::OpConstant, {1}),
+                axe::make(axe::op_code::OpNotEq, {}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
+        {
+            "true == false",
+            {},
+            {
+                axe::make(axe::op_code::OpTrue, {}),
+                axe::make(axe::op_code::OpFalse, {}),
+                axe::make(axe::op_code::OpEq, {}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
+        {
+            "true != false",
+            {},
+            {
+                axe::make(axe::op_code::OpTrue, {}),
+                axe::make(axe::op_code::OpFalse, {}),
+                axe::make(axe::op_code::OpNotEq, {}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
     };
 
     for (auto& test : tests) {

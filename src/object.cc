@@ -102,6 +102,36 @@ bool object::operator==(const object& other) const {
     return false;
 }
 
+bool object::operator!=(const object& other) const {
+    if (this->type != other.type) {
+        return true;
+    }
+
+    switch (this->type) {
+    case object_type::Null:
+        return false;
+    case object_type::Bool:
+        return this->get_bool() != other.get_bool();
+    case object_type::Integer:
+        return this->get_int() != other.get_int();
+    case object_type::Float:
+        return this->get_float() != other.get_float();
+    case object_type::String:
+        return this->get_string() != other.get_string();
+    case object_type::Error:
+        return true;
+    }
+    return true;
+}
+
+bool object::operator>(const object& rhs) const {
+    if (this->type != object_type::Integer ||
+        rhs.type != object_type::Integer) {
+        return false;
+    }
+    return this->get_int() > rhs.get_int();
+}
+
 object object::operator+(const object& rhs) const {
     if (this->type != object_type::Integer ||
         rhs.type != object_type::Integer) {

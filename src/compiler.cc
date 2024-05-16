@@ -79,6 +79,20 @@ std::optional<std::string> compiler::compile_integer(int64_t value) {
 }
 
 std::optional<std::string> compiler::compile_infix(const infix& infix) {
+
+    if (infix.get_op() == infix_operator::Lt) {
+        auto err = this->compile_expression(*infix.get_rhs());
+        if (err.has_value()) {
+            return err;
+        }
+        err = this->compile_expression(*infix.get_lhs());
+        if (err.has_value()) {
+            return err;
+        }
+        this->emit(op_code::OpGreaterThan, {});
+        return std::nullopt;
+    }
+
     auto err = this->compile_expression(*infix.get_lhs());
     if (err.has_value()) {
         return err;
@@ -100,6 +114,15 @@ std::optional<std::string> compiler::compile_infix(const infix& infix) {
         break;
     case infix_operator::Slash:
         this->emit(op_code::OpDiv, {});
+        break;
+    case infix_operator::Gt:
+        this->emit(op_code::OpGreaterThan, {});
+        break;
+    case infix_operator::Eq:
+        this->emit(op_code::OpEq, {});
+        break;
+    case infix_operator::NotEq:
+        this->emit(op_code::OpNotEq, {});
         break;
     default: {
         auto err = "unknown operator " +
