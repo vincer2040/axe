@@ -25,6 +25,9 @@ enum class op_code {
     OpGreaterThan = 10,
     OpMinus = 11,
     OpBang = 12,
+    OpJumpNotTruthy = 13,
+    OpJump = 14,
+    OpNull = 15,
 };
 
 class definition {

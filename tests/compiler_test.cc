@@ -222,3 +222,43 @@ TEST(Compiler, Booleans) {
         run_compiler_test(test);
     }
 }
+
+TEST(Compiler, Conditionals) {
+    compiler_test tests[] = {
+        {
+            "if true { 10 }; 3333",
+            {axe::object(axe::object_type::Integer, 10),
+             axe::object(axe::object_type::Integer, 3333)},
+            {
+                axe::make(axe::op_code::OpTrue, {}),
+                axe::make(axe::op_code::OpJumpNotTruthy, {10}),
+                axe::make(axe::op_code::OpConstant, {0}),
+                axe::make(axe::op_code::OpJump, {11}),
+                axe::make(axe::op_code::OpNull, {}),
+                axe::make(axe::op_code::OpPop, {}),
+                axe::make(axe::op_code::OpConstant, {1}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
+        {
+            "if true { 10 } else { 20 }; 3333;",
+            {axe::object(axe::object_type::Integer, 10),
+             axe::object(axe::object_type::Integer, 20),
+             axe::object(axe::object_type::Integer, 3333)},
+            {
+                axe::make(axe::op_code::OpTrue, {}),
+                axe::make(axe::op_code::OpJumpNotTruthy, {10}),
+                axe::make(axe::op_code::OpConstant, {0}),
+                axe::make(axe::op_code::OpJump, {13}),
+                axe::make(axe::op_code::OpConstant, {1}),
+                axe::make(axe::op_code::OpPop, {}),
+                axe::make(axe::op_code::OpConstant, {2}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
+    };
+
+    for (auto& test : tests) {
+        run_compiler_test(test);
+    }
+}

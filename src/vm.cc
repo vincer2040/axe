@@ -79,6 +79,23 @@ std::optional<std::string> vm::run() {
             }
             err = this->push(object(object_type::Integer, -rhs.get_int()));
         } break;
+        case op_code::OpJump: {
+            size_t position = static_cast<size_t>(
+                read_u16(this->ins, instruction_pointer + 1));
+            instruction_pointer = position - 1;
+        } break;
+        case op_code::OpJumpNotTruthy: {
+            size_t position = static_cast<size_t>(
+                read_u16(this->ins, instruction_pointer + 1));
+            instruction_pointer += 2;
+            auto& condition = this->pop();
+            if (!condition.is_truthy()) {
+                instruction_pointer = position - 1;
+            }
+        } break;
+        case op_code::OpNull:
+            err = this->push(object());
+            break;
         }
     }
     return err;

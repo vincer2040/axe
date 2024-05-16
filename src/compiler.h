@@ -13,6 +13,11 @@ struct byte_code {
     const std::vector<object>& constants;
 };
 
+struct emitted_instruction {
+    op_code op;
+    size_t position;
+};
+
 class compiler {
   public:
     std::optional<std::string> compile(const ast& ast);
@@ -21,10 +26,17 @@ class compiler {
   private:
     instructions ins;
     std::vector<object> constants;
+    emitted_instruction last_instruction;
+    emitted_instruction previous_instruction;
 
-    int emit(op_code op, const std::vector<int> operands);
-    int add_instruction(const std::vector<uint8_t> ins);
+    size_t emit(op_code op, const std::vector<int> operands);
+    size_t add_instruction(const std::vector<uint8_t> ins);
     int add_constant(object obj);
+    void set_last_instruction(op_code op, size_t position);
+    bool last_instruction_is_pop();
+    void remove_last_pop();
+    void replace_instruction(size_t position, std::vector<uint8_t> new_instruction);
+    void change_operand(size_t op_position, int operand);
 
     std::optional<std::string>
     compile_statements(const std::vector<statement>& statements);
@@ -33,6 +45,8 @@ class compiler {
     std::optional<std::string> compile_integer(int64_t value);
     std::optional<std::string> compile_prefix(const prefix& prefix);
     std::optional<std::string> compile_infix(const infix& infix);
+    std::optional<std::string> compile_if(const if_expression& if_exp);
+    std::optional<std::string> compile_block(const block_statement& block);
 };
 
 } // namespace axe

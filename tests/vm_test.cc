@@ -114,9 +114,56 @@ TEST(VM, Booleans) {
         {"!!true", true},
         {"!!false", false},
         {"!!5", true},
+        {"!(if (false) { 5; })", true},
     };
 
     for (auto& test : tests) {
         run_vm_bool_test(test);
+    }
+}
+
+TEST(VM, Conditionals) {
+    vm_test<int64_t> tests[] = {
+        {"if true { 10 }", 10},
+        {"if true { 10 } else { 20 }", 10},
+        {"if false { 10 } else { 20 } ", 20},
+        {"if 1 { 10 }", 10},
+        {"if 1 < 2 { 10 }", 10},
+        {"if 1 < 2 { 10 } else { 20 }", 10},
+        {"if 1 > 2 { 10 } else { 20 }", 20},
+        {"if ((if (false) { 10 })) { 10 } else { 20 }", 20},
+    };
+
+    for (auto& test : tests) {
+        run_vm_int_test(test);
+    }
+}
+
+void run_vm_null_test(const std::string& test) {
+    auto ast = parse(test);
+    axe::compiler compiler;
+    auto err = compiler.compile(std::move(ast));
+    if (err.has_value()) {
+        std::cout << *err << '\n';
+    }
+    EXPECT_FALSE(err.has_value());
+    axe::vm vm(compiler.get_byte_code());
+    err = vm.run();
+    if (err.has_value()) {
+        std::cout << *err << '\n';
+    }
+    EXPECT_FALSE(err.has_value());
+    auto stack_elem = vm.last_popped_stack_element();
+    EXPECT_EQ(stack_elem.get_type(), axe::object_type::Null);
+}
+
+TEST(VM, NullConditions) {
+    std::string tests[] = {
+        "if 1 > 2 { 10 }",
+        "if false { 10 }",
+    };
+
+    for (auto& test : tests) {
+        run_vm_null_test(test);
     }
 }
