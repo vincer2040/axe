@@ -18,6 +18,9 @@ static const std::unordered_map<op_code, definition> definitions = {
     {op_code::OpConstant, definition("OpConstant", {2})},
     {op_code::OpAdd, definition("OpAdd", {})},
     {op_code::OpPop, definition("OpPop", {})},
+    {op_code::OpSub, definition("OpSub", {})},
+    {op_code::OpMul, definition("OpMul", {})},
+    {op_code::OpDiv, definition("OpDiv", {})},
 };
 
 std::optional<const definition> lookup(op_code op) {

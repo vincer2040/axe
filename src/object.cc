@@ -111,4 +111,31 @@ object object::operator+(const object& rhs) const {
     return object(object_type::Integer, value);
 }
 
+object object::operator-(const object& rhs) const {
+    if (this->type != object_type::Integer ||
+        rhs.type != object_type::Integer) {
+        return object();
+    }
+    int64_t value = this->get_int() - rhs.get_int();
+    return object(object_type::Integer, value);
+}
+
+object object::operator*(const object& rhs) const {
+    if (this->type != object_type::Integer ||
+        rhs.type != object_type::Integer) {
+        return object();
+    }
+    int64_t value = this->get_int() * rhs.get_int();
+    return object(object_type::Integer, value);
+}
+
+object object::operator/(const object& rhs) const {
+    if (this->type != object_type::Integer ||
+        rhs.type != object_type::Integer) {
+        return object();
+    }
+    int64_t value = this->get_int() / rhs.get_int();
+    return object(object_type::Integer, value);
+}
+
 } // namespace axe

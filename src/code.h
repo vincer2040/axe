@@ -15,6 +15,9 @@ enum class op_code {
     OpConstant = 0,
     OpAdd = 1,
     OpPop = 2,
+    OpSub = 3,
+    OpMul = 4,
+    OpDiv = 5,
 };
 
 class definition {

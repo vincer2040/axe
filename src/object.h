@@ -38,6 +38,9 @@ class object {
 
     bool operator==(const object& other) const;
     object operator+(const object& rhs) const;
+    object operator-(const object& rhs) const;
+    object operator*(const object& rhs) const;
+    object operator/(const object& rhs) const;
 
   private:
     object_type type;

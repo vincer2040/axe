@@ -28,6 +28,21 @@ std::optional<std::string> vm::run() {
         case op_code::OpPop:
             this->pop();
             break;
+        case op_code::OpSub: {
+            auto& rhs = this->pop();
+            auto& lhs = this->pop();
+            this->push(lhs - rhs);
+        } break;
+        case op_code::OpMul: {
+            auto& rhs = this->pop();
+            auto& lhs = this->pop();
+            this->push(lhs * rhs);
+        } break;
+        case op_code::OpDiv: {
+            auto& rhs = this->pop();
+            auto& lhs = this->pop();
+            this->push(lhs / rhs);
+        } break;
         }
     }
     return std::nullopt;

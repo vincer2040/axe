@@ -88,6 +88,15 @@ std::optional<std::string> compiler::compile_infix(const infix& infix) {
     case infix_operator::Plus:
         this->emit(op_code::OpAdd, {});
         break;
+    case infix_operator::Minus:
+        this->emit(op_code::OpSub, {});
+        break;
+    case infix_operator::Asterisk:
+        this->emit(op_code::OpMul, {});
+        break;
+    case infix_operator::Slash:
+        this->emit(op_code::OpDiv, {});
+        break;
     default: {
         auto err = "unknown operator " +
                    std::string(infix_operator_string(infix.get_op()));

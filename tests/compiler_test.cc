@@ -81,6 +81,39 @@ TEST(Compiler, IntegerArithmatic) {
                 axe::make(axe::op_code::OpPop, {}),
             },
         },
+        {
+            "1 - 2",
+            {axe::object(axe::object_type::Integer, 1),
+             axe::object(axe::object_type::Integer, 2)},
+            {
+                axe::make(axe::op_code::OpConstant, {0}),
+                axe::make(axe::op_code::OpConstant, {1}),
+                axe::make(axe::op_code::OpSub, {}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
+        {
+            "1 * 2",
+            {axe::object(axe::object_type::Integer, 1),
+             axe::object(axe::object_type::Integer, 2)},
+            {
+                axe::make(axe::op_code::OpConstant, {0}),
+                axe::make(axe::op_code::OpConstant, {1}),
+                axe::make(axe::op_code::OpMul, {}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
+        {
+            "2 / 1",
+            {axe::object(axe::object_type::Integer, 2),
+             axe::object(axe::object_type::Integer, 1)},
+            {
+                axe::make(axe::op_code::OpConstant, {0}),
+                axe::make(axe::op_code::OpConstant, {1}),
+                axe::make(axe::op_code::OpDiv, {}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
     };
 
     for (auto& test : tests) {
