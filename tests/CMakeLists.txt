@@ -25,6 +25,11 @@ add_executable(
     vm_test.cc
 )
 
+add_executable(
+    symbol_table_test
+    symbol_table_test.cc
+)
+
 target_link_libraries(
     lexer_test
     GTest::gtest_main
@@ -73,6 +78,13 @@ target_link_libraries(
     vm
 )
 
+target_link_libraries(
+    symbol_table_test
+    GTest::gtest_main
+    GTest::gmock_main
+    symbol_table
+)
+
 include(GoogleTest)
 
 gtest_discover_tests(lexer_test)
@@ -80,3 +92,4 @@ gtest_discover_tests(parser_test)
 gtest_discover_tests(code_test)
 gtest_discover_tests(compiler_test)
 gtest_discover_tests(vm_test)
+gtest_discover_tests(symbol_table_test)

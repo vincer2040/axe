@@ -4,9 +4,17 @@
 
 namespace axe {
 
+// current work around to keep objects around
+// in between repl state
+static std::vector<object> global_globals(GLOBALS_SIZE, object());
+
 vm::vm(byte_code byte_code)
     : constants(std::move(byte_code.constants)), ins(std::move(byte_code.ins)),
-      stack_pointer(0) {}
+      globals(global_globals), stack_pointer(0) {}
+
+vm::vm(byte_code byte_code, std::vector<object>& globals)
+    : constants(std::move(byte_code.constants)), ins(std::move(byte_code.ins)),
+      globals(globals), stack_pointer(0) {}
 
 std::optional<std::string> vm::run() {
     std::optional<std::string> err = std::nullopt;
@@ -96,6 +104,18 @@ std::optional<std::string> vm::run() {
         case op_code::OpNull:
             err = this->push(object());
             break;
+        case op_code::OpSetGlobal: {
+            size_t global_index = static_cast<size_t>(
+                read_u16(this->ins, instruction_pointer + 1));
+            instruction_pointer += 2;
+            this->globals[global_index] = this->pop();
+        } break;
+        case op_code::OpGetGlobal: {
+            size_t global_index = static_cast<size_t>(
+                read_u16(this->ins, instruction_pointer + 1));
+            instruction_pointer += 2;
+            err = this->push(this->globals[global_index]);
+        } break;
         }
     }
     return err;

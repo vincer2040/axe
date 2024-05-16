@@ -46,7 +46,9 @@ static void test_constants(const std::vector<axe::object> expected,
 
 static void run_compiler_test(const compiler_test& test) {
     auto ast = parse(test.input);
-    axe::compiler compiler;
+    std::vector<axe::object> constants;
+    axe::symbol_table table;
+    axe::compiler compiler(table, constants);
     auto err = compiler.compile(ast);
     if (err.has_value()) {
         std::cout << *err << '\n';
@@ -253,6 +255,48 @@ TEST(Compiler, Conditionals) {
                 axe::make(axe::op_code::OpConstant, {1}),
                 axe::make(axe::op_code::OpPop, {}),
                 axe::make(axe::op_code::OpConstant, {2}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
+    };
+
+    for (auto& test : tests) {
+        run_compiler_test(test);
+    }
+}
+
+TEST(Compiler, GlobalLetStatements) {
+    compiler_test tests[] = {
+        {
+            "let one = 1; let two = 2;",
+            {axe::object(axe::object_type::Integer, 1),
+             axe::object(axe::object_type::Integer, 2)},
+            {
+                axe::make(axe::op_code::OpConstant, {0}),
+                axe::make(axe::op_code::OpSetGlobal, {0}),
+                axe::make(axe::op_code::OpConstant, {1}),
+                axe::make(axe::op_code::OpSetGlobal, {1}),
+            },
+        },
+        {
+            "let one = 1; one",
+            {axe::object(axe::object_type::Integer, 1)},
+            {
+                axe::make(axe::op_code::OpConstant, {0}),
+                axe::make(axe::op_code::OpSetGlobal, {0}),
+                axe::make(axe::op_code::OpGetGlobal, {0}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
+        {
+            "let one = 1; let two = one; two;",
+            {axe::object(axe::object_type::Integer, 1)},
+            {
+                axe::make(axe::op_code::OpConstant, {0}),
+                axe::make(axe::op_code::OpSetGlobal, {0}),
+                axe::make(axe::op_code::OpGetGlobal, {0}),
+                axe::make(axe::op_code::OpSetGlobal, {1}),
+                axe::make(axe::op_code::OpGetGlobal, {1}),
                 axe::make(axe::op_code::OpPop, {}),
             },
         },

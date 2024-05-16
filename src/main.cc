@@ -22,6 +22,9 @@ bool check_errors(const axe::parser& parser) {
 }
 
 void main_loop() {
+    std::vector<axe::object> globals(GLOBALS_SIZE, axe::object());
+    axe::symbol_table symbol_table;
+    std::vector<axe::object> constants;
     while (true) {
         std::string line = read_line(">>> ");
         if (line == "exit") {
@@ -33,13 +36,13 @@ void main_loop() {
         if (check_errors(parser)) {
             continue;
         }
-        axe::compiler compiler;
+        axe::compiler compiler(symbol_table, constants);
         auto err = compiler.compile(ast);
         if (err.has_value()) {
             std::cout << *err << '\n';
             continue;
         }
-        axe::vm vm(compiler.get_byte_code());
+        axe::vm vm(compiler.get_byte_code(), globals);
         err = vm.run();
         if (err.has_value()) {
             std::cout << *err << '\n';

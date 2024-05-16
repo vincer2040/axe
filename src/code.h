@@ -28,6 +28,8 @@ enum class op_code {
     OpJumpNotTruthy = 13,
     OpJump = 14,
     OpNull = 15,
+    OpGetGlobal = 16,
+    OpSetGlobal = 17,
 };
 
 class definition {

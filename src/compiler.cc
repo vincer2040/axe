@@ -1,9 +1,13 @@
 #include "compiler.h"
 #include "ast.h"
+#include "base.h"
 #include "code.h"
 #include <optional>
 
 namespace axe {
+
+compiler::compiler(symbol_table& symb_table, std::vector<object>& constants)
+    : symb_table(symb_table), constants(constants) {}
 
 std::optional<std::string> compiler::compile(const ast& ast) {
     return this->compile_statements(ast.get_statements());
@@ -73,11 +77,29 @@ compiler::compile_statements(const std::vector<statement>& statements) {
 
 std::optional<std::string>
 compiler::compile_statement(const statement& statement) {
-    auto err = this->compile_expression(statement.get_expression());
+    std::optional<std::string> err = std::nullopt;
+    switch (statement.get_type()) {
+    case statement_type::LetStatement:
+        err = this->compile_let_statement(statement.get_let());
+        break;
+    case statement_type::ExpressionStatement:
+        err = this->compile_expression(statement.get_expression());
+        this->emit(op_code::OpPop, {});
+        break;
+    default:
+        AXE_UNREACHABLE;
+    }
+    return err;
+}
+
+std::optional<std::string>
+compiler::compile_let_statement(const let_statement& let) {
+    auto err = this->compile_expression(let.get_value());
     if (err.has_value()) {
         return err;
     }
-    this->emit(op_code::OpPop, {});
+    auto symbol = this->symb_table.define(let.get_name());
+    this->emit(op_code::OpSetGlobal, {(int)symbol.index});
     return std::nullopt;
 }
 
@@ -91,6 +113,9 @@ compiler::compile_expression(const expression& expression) {
     case expression_type::Bool:
         this->emit(expression.get_bool() ? op_code::OpTrue : op_code::OpFalse,
                    {});
+        break;
+    case expression_type::Ident:
+        err = this->compile_ident(expression.get_ident());
         break;
     case expression_type::Prefix:
         err = this->compile_prefix(expression.get_prefix());
@@ -111,6 +136,15 @@ compiler::compile_expression(const expression& expression) {
 std::optional<std::string> compiler::compile_integer(int64_t value) {
     object obj(object_type::Integer, value);
     this->emit(op_code::OpConstant, {this->add_constant(std::move(obj))});
+    return std::nullopt;
+}
+
+std::optional<std::string> compiler::compile_ident(const std::string& ident) {
+    auto symbol = this->symb_table.resolve(ident);
+    if (!symbol.has_value()) {
+        return "undefined variable " + ident;
+    }
+    this->emit(op_code::OpGetGlobal, {(int)symbol->index});
     return std::nullopt;
 }
 

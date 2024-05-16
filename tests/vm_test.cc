@@ -23,7 +23,9 @@ template <typename T> struct vm_test {
 
 void run_vm_int_test(const vm_test<int64_t>& test) {
     auto ast = parse(test.input);
-    axe::compiler compiler;
+    std::vector<axe::object> constants;
+    axe::symbol_table table;
+    axe::compiler compiler(table, constants);
     auto err = compiler.compile(std::move(ast));
     if (err.has_value()) {
         std::cout << *err << '\n';
@@ -71,7 +73,9 @@ void test_bool(const axe::object& got, bool expected) {
 
 void run_vm_bool_test(const vm_test<bool>& test) {
     auto ast = parse(test.input);
-    axe::compiler compiler;
+    std::vector<axe::object> constants;
+    axe::symbol_table table;
+    axe::compiler compiler(table, constants);
     auto err = compiler.compile(std::move(ast));
     if (err.has_value()) {
         std::cout << *err << '\n';
@@ -141,7 +145,9 @@ TEST(VM, Conditionals) {
 
 void run_vm_null_test(const std::string& test) {
     auto ast = parse(test);
-    axe::compiler compiler;
+    std::vector<axe::object> constants;
+    axe::symbol_table table;
+    axe::compiler compiler(table, constants);
     auto err = compiler.compile(std::move(ast));
     if (err.has_value()) {
         std::cout << *err << '\n';
@@ -165,5 +171,16 @@ TEST(VM, NullConditions) {
 
     for (auto& test : tests) {
         run_vm_null_test(test);
+    }
+}
+
+TEST(VM, GlobalLetStatements) {
+    vm_test<int64_t> tests[] = {
+        {"let one = 1; one", 1},
+        {"let one = 1; let two = 2; one + two", 3},
+        {"let one = 1; let two = one + one; one + two", 3},
+    };
+    for (auto& test : tests) {
+        run_vm_int_test(test);
     }
 }

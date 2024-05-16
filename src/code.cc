@@ -31,6 +31,8 @@ static const std::unordered_map<op_code, definition> definitions = {
     {op_code::OpJumpNotTruthy, definition("OpBang", {2})},
     {op_code::OpJump, definition("OpBang", {2})},
     {op_code::OpNull, definition("OpNull", {})},
+    {op_code::OpGetGlobal, definition("OpGetGlobal", {2})},
+    {op_code::OpSetGlobal, definition("OpSetGlobal", {2})},
 };
 
 std::optional<const definition> lookup(op_code op) {

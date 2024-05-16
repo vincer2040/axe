@@ -50,6 +50,11 @@ add_library(
 )
 
 add_library(
+    symbol_table
+    src/symbol_table.cc
+)
+
+add_library(
     vm
     src/vm.cc
 )
@@ -85,6 +90,7 @@ target_link_libraries(
     compiler
     code
     ast
+    symbol_table
 )
 
 target_link_libraries(

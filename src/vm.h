@@ -8,26 +8,30 @@
 #include <vector>
 
 #define STACK_SIZE 2048
+#define GLOBALS_SIZE 65536
 
 namespace axe {
 
 class vm {
-    public:
-        vm(byte_code byte_code);
+  public:
+    vm(byte_code byte_code);
+    vm(byte_code byte_code, std::vector<object>& globals);
 
-        std::optional<std::string> run();
-        std::optional<const object> stack_top();
-        const object& last_popped_stack_element();
-    private:
-        std::vector<object> constants;
-        instructions ins;
-        object stack[STACK_SIZE];
-        size_t stack_pointer;
+    std::optional<std::string> run();
+    std::optional<const object> stack_top();
+    const object& last_popped_stack_element();
 
-        std::optional<std::string> push(const object& obj);
-        const object& pop();
+  private:
+    std::vector<object> constants;
+    instructions ins;
+    object stack[STACK_SIZE];
+    std::vector<object>& globals;
+    size_t stack_pointer;
+
+    std::optional<std::string> push(const object& obj);
+    const object& pop();
 };
 
-}
+} // namespace axe
 
 #endif // __AXE_VM_H__
