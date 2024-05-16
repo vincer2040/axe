@@ -18,6 +18,8 @@ enum class op_code {
     OpSub = 3,
     OpMul = 4,
     OpDiv = 5,
+    OpTrue = 6,
+    OpFalse = 7,
 };
 
 class definition {

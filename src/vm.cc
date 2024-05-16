@@ -1,5 +1,6 @@
 #include "vm.h"
 #include "code.h"
+#include <optional>
 
 namespace axe {
 
@@ -8,13 +9,14 @@ vm::vm(byte_code byte_code)
       stack_pointer(0) {}
 
 std::optional<std::string> vm::run() {
+    std::optional<std::string> err = std::nullopt;
     for (size_t instruction_pointer = 0; instruction_pointer < this->ins.size();
          ++instruction_pointer) {
         op_code op = static_cast<op_code>(this->ins[instruction_pointer]);
         switch (op) {
         case op_code::OpConstant: {
             uint16_t const_index = read_u16(this->ins, instruction_pointer + 1);
-            auto err = this->push(this->constants[const_index]);
+            err = this->push(this->constants[const_index]);
             if (err.has_value()) {
                 return err;
             }
@@ -23,7 +25,7 @@ std::optional<std::string> vm::run() {
         case op_code::OpAdd: {
             auto& rhs = this->pop();
             auto& lhs = this->pop();
-            this->push(lhs + rhs);
+            err = this->push(lhs + rhs);
         } break;
         case op_code::OpPop:
             this->pop();
@@ -31,21 +33,27 @@ std::optional<std::string> vm::run() {
         case op_code::OpSub: {
             auto& rhs = this->pop();
             auto& lhs = this->pop();
-            this->push(lhs - rhs);
+            err = this->push(lhs - rhs);
         } break;
         case op_code::OpMul: {
             auto& rhs = this->pop();
             auto& lhs = this->pop();
-            this->push(lhs * rhs);
+            err = this->push(lhs * rhs);
         } break;
         case op_code::OpDiv: {
             auto& rhs = this->pop();
             auto& lhs = this->pop();
-            this->push(lhs / rhs);
+            err = this->push(lhs / rhs);
         } break;
+        case op_code::OpTrue:
+            err = this->push(object(object_type::Bool, true));
+            break;
+        case op_code::OpFalse:
+            err = this->push(object(object_type::Bool, false));
+            break;
         }
     }
-    return std::nullopt;
+    return err;
 }
 
 std::optional<const object> vm::stack_top() {

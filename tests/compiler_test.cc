@@ -120,3 +120,19 @@ TEST(Compiler, IntegerArithmatic) {
         run_compiler_test(test);
     }
 }
+
+TEST(Compiler, Booleans) {
+    compiler_test tests[] = {
+        {"true",
+         {},
+         {axe::make(axe::op_code::OpTrue, {}),
+          axe::make(axe::op_code::OpPop, {})}},
+        {"false",
+         {},
+         {axe::make(axe::op_code::OpFalse, {}),
+          axe::make(axe::op_code::OpPop, {})}},
+    };
+    for (auto& test : tests) {
+        run_compiler_test(test);
+    }
+}

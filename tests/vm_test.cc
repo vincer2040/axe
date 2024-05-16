@@ -59,3 +59,37 @@ TEST(VM, IntegerArithmatic) {
         run_vm_int_test(test);
     }
 }
+
+void test_bool(const axe::object& got, bool expected) {
+    EXPECT_EQ(got.get_type(), axe::object_type::Bool);
+    EXPECT_EQ(got.get_bool(), expected);
+}
+
+void run_vm_bool_test(const vm_test<bool>& test) {
+    auto ast = parse(test.input);
+    axe::compiler compiler;
+    auto err = compiler.compile(std::move(ast));
+    if (err.has_value()) {
+        std::cout << *err << '\n';
+    }
+    EXPECT_FALSE(err.has_value());
+    axe::vm vm(compiler.get_byte_code());
+    err = vm.run();
+    if (err.has_value()) {
+        std::cout << *err << '\n';
+    }
+    EXPECT_FALSE(err.has_value());
+    auto stack_elem = vm.last_popped_stack_element();
+    test_bool(stack_elem, test.expected);
+}
+
+TEST(VM, Booleans) {
+    vm_test<bool> tests[] = {
+        {"true", true},
+        {"false", false},
+    };
+
+    for (auto& test : tests) {
+        run_vm_bool_test(test);
+    }
+}

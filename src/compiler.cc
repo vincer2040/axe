@@ -58,6 +58,10 @@ compiler::compile_expression(const expression& expression) {
     case expression_type::Integer:
         err = this->compile_integer(expression.get_int());
         break;
+    case expression_type::Bool:
+        this->emit(expression.get_bool() ? op_code::OpTrue : op_code::OpFalse,
+                   {});
+        break;
     case expression_type::Infix:
         err = this->compile_infix(expression.get_infix());
         break;
