@@ -304,3 +304,31 @@ TEST(Compiler, GlobalLetStatements) {
         run_compiler_test(test);
     }
 }
+
+TEST(Compiler, Strings) {
+    compiler_test tests[] = {
+        {
+            "\"axe\"",
+            {axe::object(axe::object_type::String, "axe")},
+            {
+                axe::make(axe::op_code::OpConstant, {0}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
+        {
+            "\"ax\" + \"e\"",
+            {axe::object(axe::object_type::String, "ax"),
+             axe::object(axe::object_type::String, "e")},
+            {
+                axe::make(axe::op_code::OpConstant, {0}),
+                axe::make(axe::op_code::OpConstant, {1}),
+                axe::make(axe::op_code::OpAdd, {}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
+    };
+
+    for (auto& test : tests) {
+        run_compiler_test(test);
+    }
+}

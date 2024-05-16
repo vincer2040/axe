@@ -143,6 +143,9 @@ compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_expression(
         this->emit(expression.get_bool() ? op_code::OpTrue : op_code::OpFalse,
                    {});
         break;
+    case expression_type::String:
+        err = this->compile_string(expression.get_string());
+        break;
     case expression_type::Ident:
         err = this->compile_ident(expression.get_ident());
         break;
@@ -167,6 +170,15 @@ std::optional<std::string>
 compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_integer(
     int64_t value) {
     object obj(object_type::Integer, value);
+    this->emit(op_code::OpConstant, {this->add_constant(std::move(obj))});
+    return std::nullopt;
+}
+
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+std::optional<std::string>
+compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_string(
+    const std::string& value) {
+    object obj(object_type::String, value);
     this->emit(op_code::OpConstant, {this->add_constant(std::move(obj))});
     return std::nullopt;
 }

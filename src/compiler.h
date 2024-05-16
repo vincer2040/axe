@@ -50,6 +50,7 @@ class compiler {
     std::optional<std::string> compile_let_statement(const let_statement& let);
     std::optional<std::string> compile_expression(const expression& expression);
     std::optional<std::string> compile_integer(int64_t value);
+    std::optional<std::string> compile_string(const std::string& value);
     std::optional<std::string> compile_ident(const std::string& ident);
     std::optional<std::string> compile_prefix(const prefix& prefix);
     std::optional<std::string> compile_infix(const infix& infix);

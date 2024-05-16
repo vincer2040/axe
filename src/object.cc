@@ -151,12 +151,19 @@ bool object::operator>(const object& rhs) const {
 }
 
 object object::operator+(const object& rhs) const {
-    if (this->type != object_type::Integer ||
-        rhs.type != object_type::Integer) {
+    if (this->type != rhs.type) {
         return object();
     }
-    int64_t value = this->get_int() + rhs.get_int();
-    return object(object_type::Integer, value);
+    switch (this->type) {
+    case object_type::Integer:
+        return object(object_type::Integer, this->get_int() + rhs.get_int());
+    case object_type::String:
+        return object(object_type::String,
+                      this->get_string() + rhs.get_string());
+    default:
+        break;
+    }
+    return object();
 }
 
 object object::operator-(const object& rhs) const {

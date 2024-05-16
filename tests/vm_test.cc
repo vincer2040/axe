@@ -5,6 +5,11 @@
 #include "../src/vm.h"
 #include <gtest/gtest.h>
 
+// NOTE: these tests take a long time
+// because it constructs a vector with
+// 65536 objects in it on vm construction
+// find a way to speed these up.
+
 axe::ast parse(const std::string& input) {
     axe::lexer l(input);
     axe::parser p(l);
@@ -14,6 +19,11 @@ axe::ast parse(const std::string& input) {
 void test_integer(const axe::object& got, int64_t expected) {
     EXPECT_EQ(got.get_type(), axe::object_type::Integer);
     EXPECT_EQ(got.get_int(), expected);
+}
+
+void test_string(const axe::object& got, std::string expected) {
+    EXPECT_EQ(got.get_type(), axe::object_type::String);
+    EXPECT_EQ(got.get_string(), expected);
 }
 
 template <typename T> struct vm_test {
@@ -176,5 +186,35 @@ TEST(VM, GlobalLetStatements) {
     };
     for (auto& test : tests) {
         run_vm_int_test(test);
+    }
+}
+
+void run_vm_string_test(vm_test<std::string> test) {
+    auto ast = parse(test.input);
+    axe::compiler<std::vector<axe::object>, axe::symbol_table> compiler;
+    auto err = compiler.compile(std::move(ast));
+    if (err.has_value()) {
+        std::cout << *err << '\n';
+    }
+    EXPECT_FALSE(err.has_value());
+    axe::vm<std::vector<axe::object>> vm(compiler.get_byte_code());
+    err = vm.run();
+    if (err.has_value()) {
+        std::cout << *err << '\n';
+    }
+    EXPECT_FALSE(err.has_value());
+    auto stack_elem = vm.last_popped_stack_element();
+    test_string(stack_elem, test.expected);
+}
+
+TEST(VM, Strings) {
+    vm_test<std::string> tests[] = {
+        {"\"axe\"", "axe"},
+        {"\"ax\" + \"e\"", "axe"},
+        {"\"axe\" + \"lang\"", "axelang"},
+    };
+
+    for (auto& test : tests) {
+        run_vm_string_test(test);
     }
 }
