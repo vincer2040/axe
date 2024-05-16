@@ -26,6 +26,8 @@ static const std::unordered_map<op_code, definition> definitions = {
     {op_code::OpEq, definition("OpEq", {})},
     {op_code::OpNotEq, definition("OpNotEq", {})},
     {op_code::OpGreaterThan, definition("OpGreaterThan", {})},
+    {op_code::OpMinus, definition("OpMinus", {})},
+    {op_code::OpBang, definition("OpBang", {})},
 };
 
 std::optional<const definition> lookup(op_code op) {

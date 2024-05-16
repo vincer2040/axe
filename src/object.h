@@ -35,6 +35,7 @@ class object {
     std::string string() const;
 
     bool is_error() const;
+    bool is_truthy() const;
 
     bool operator==(const object& other) const;
     bool operator>(const object& other) const;

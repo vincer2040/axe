@@ -80,6 +80,24 @@ std::string object::string() const {
 
 bool object::is_error() const { return this->type == object_type::Error; }
 
+bool object::is_truthy() const {
+    switch (this->type) {
+    case object_type::Bool:
+        return this->get_bool();
+    case object_type::Integer:
+        return this->get_int() ? true : false;
+    case object_type::Float:
+        return this->get_float() ? true : false;
+    case object_type::String:
+        return true;
+    case object_type::Error:
+        return false;
+    default:
+        break;
+    }
+    return false;
+}
+
 bool object::operator==(const object& other) const {
     if (this->type != other.type) {
         return false;

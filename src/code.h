@@ -23,6 +23,8 @@ enum class op_code {
     OpEq = 8,
     OpNotEq = 9,
     OpGreaterThan = 10,
+    OpMinus = 11,
+    OpBang = 12,
 };
 
 class definition {

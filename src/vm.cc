@@ -66,6 +66,19 @@ std::optional<std::string> vm::run() {
             auto& lhs = this->pop();
             err = this->push(object(object_type::Bool, lhs > rhs));
         } break;
+        case op_code::OpBang: {
+            auto& rhs = this->pop();
+            err = this->push(object(object_type::Bool, !rhs.is_truthy()));
+        } break;
+        case op_code::OpMinus: {
+            auto& rhs = this->pop();
+            if (rhs.get_type() != object_type::Integer) {
+                err = "unsupported type for negation " +
+                      std::string(rhs.type_to_strig());
+                return err;
+            }
+            err = this->push(object(object_type::Integer, -rhs.get_int()));
+        } break;
         }
     }
     return err;

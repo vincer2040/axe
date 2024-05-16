@@ -62,6 +62,9 @@ compiler::compile_expression(const expression& expression) {
         this->emit(expression.get_bool() ? op_code::OpTrue : op_code::OpFalse,
                    {});
         break;
+    case expression_type::Prefix:
+        err = this->compile_prefix(expression.get_prefix());
+        break;
     case expression_type::Infix:
         err = this->compile_infix(expression.get_infix());
         break;
@@ -75,6 +78,22 @@ compiler::compile_expression(const expression& expression) {
 std::optional<std::string> compiler::compile_integer(int64_t value) {
     object obj(object_type::Integer, value);
     this->emit(op_code::OpConstant, {this->add_constant(std::move(obj))});
+    return std::nullopt;
+}
+
+std::optional<std::string> compiler::compile_prefix(const prefix& prefix) {
+    auto err = this->compile_expression(*prefix.get_rhs());
+    if (err.has_value()) {
+        return err;
+    }
+    switch (prefix.get_op()) {
+    case prefix_operator::Bang:
+        this->emit(op_code::OpBang, {});
+        break;
+    case prefix_operator::Minus:
+        this->emit(op_code::OpMinus, {});
+        break;
+    }
     return std::nullopt;
 }
 

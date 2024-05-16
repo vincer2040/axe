@@ -30,8 +30,9 @@ class compiler {
     compile_statements(const std::vector<statement>& statements);
     std::optional<std::string> compile_statement(const statement& statement);
     std::optional<std::string> compile_expression(const expression& expression);
-    std::optional<std::string> compile_infix(const infix& infix);
     std::optional<std::string> compile_integer(int64_t value);
+    std::optional<std::string> compile_prefix(const prefix& prefix);
+    std::optional<std::string> compile_infix(const infix& infix);
 };
 
 } // namespace axe
