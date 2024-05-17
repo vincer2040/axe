@@ -25,11 +25,17 @@ struct compilation_scope {
     emitted_instruction previous_instruction;
 };
 
+using constants_owned = std::vector<object>;
+using constants_ref = std::vector<object>&;
+
+using symbol_table_owned = symbol_table;
+using symbol_table_ref = symbol_table&;
+
 template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
 class compiler {
   public:
     compiler();
-    compiler(SymbolTableLifeTime symb_table, ConstantsLifeTime constants);
+    compiler(symbol_table_ref symb_table, constants_ref constants);
     std::optional<std::string> compile(const ast& ast);
     const byte_code get_byte_code() const;
 

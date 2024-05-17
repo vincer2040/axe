@@ -7,14 +7,13 @@
 namespace axe {
 
 template <>
-compiler<std::vector<object>, symbol_table>::compiler() : scope_index(0) {
+compiler<constants_owned, symbol_table_owned>::compiler() : scope_index(0) {
     compilation_scope main_scope = {std::vector<uint8_t>(), {}, {}};
     this->scopes.push_back(main_scope);
 }
-
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
-compiler<ConstantsLifeTime, SymbolTableLifeTime>::compiler(
-    SymbolTableLifeTime symb_table, ConstantsLifeTime constants)
+template<>
+compiler<constants_ref, symbol_table_ref>::compiler(
+    symbol_table& symb_table, std::vector<object>& constants)
     : symb_table(symb_table), constants(constants), scope_index(0) {
     compilation_scope main_scope = {std::vector<uint8_t>(), {}, {}};
     this->scopes.push_back(main_scope);
@@ -444,7 +443,7 @@ compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_block(
     return this->compile_statements(block.get_block());
 }
 
-template class compiler<std::vector<object>, symbol_table>;
-template class compiler<std::vector<object>&, symbol_table&>;
+template class compiler<constants_owned, symbol_table_owned>;
+template class compiler<constants_ref, symbol_table_ref>;
 
 } // namespace axe

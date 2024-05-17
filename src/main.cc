@@ -36,7 +36,7 @@ void main_loop() {
         if (check_errors(parser)) {
             continue;
         }
-        axe::compiler<std::vector<axe::object>&, axe::symbol_table&> compiler(
+        axe::compiler<axe::constants_ref, axe::symbol_table_ref> compiler(
             symbol_table, constants);
         auto err = compiler.compile(ast);
         if (err.has_value()) {
