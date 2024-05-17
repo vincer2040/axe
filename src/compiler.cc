@@ -15,7 +15,10 @@ compiler<std::vector<object>, symbol_table>::compiler() : scope_index(0) {
 template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
 compiler<ConstantsLifeTime, SymbolTableLifeTime>::compiler(
     SymbolTableLifeTime symb_table, ConstantsLifeTime constants)
-    : symb_table(symb_table), constants(constants) {}
+    : symb_table(symb_table), constants(constants), scope_index(0) {
+    compilation_scope main_scope = {std::vector<uint8_t>(), {}, {}};
+    this->scopes.push_back(main_scope);
+}
 
 template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
 std::optional<std::string>
