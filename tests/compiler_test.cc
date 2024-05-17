@@ -332,3 +332,79 @@ TEST(Compiler, Strings) {
         run_compiler_test(test);
     }
 }
+
+TEST(Compiler, Functions) {
+    compiler_test tests[] = {
+        {
+            "fn add() { return 5 + 10 }",
+            {
+                axe::object(axe::object_type::Integer, 5),
+                axe::object(axe::object_type::Integer, 10),
+                axe::object(axe::object_type::Function,
+                            concatinate_instructions({
+                                axe::make(axe::op_code::OpConstant, {0}),
+                                axe::make(axe::op_code::OpConstant, {1}),
+                                axe::make(axe::op_code::OpAdd, {}),
+                                axe::make(axe::op_code::OpReturnValue, {}),
+                            })),
+            },
+            {
+                axe::make(axe::op_code::OpConstant, {2}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
+        {
+            "fn add() { 5 + 10 }",
+            {
+                axe::object(axe::object_type::Integer, 5),
+                axe::object(axe::object_type::Integer, 10),
+                axe::object(axe::object_type::Function,
+                            concatinate_instructions({
+                                axe::make(axe::op_code::OpConstant, {0}),
+                                axe::make(axe::op_code::OpConstant, {1}),
+                                axe::make(axe::op_code::OpAdd, {}),
+                                axe::make(axe::op_code::OpReturnValue, {}),
+                            })),
+            },
+            {
+                axe::make(axe::op_code::OpConstant, {2}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
+        {
+            "fn add() { 1; 2 }",
+            {
+                axe::object(axe::object_type::Integer, 1),
+                axe::object(axe::object_type::Integer, 2),
+                axe::object(axe::object_type::Function,
+                            concatinate_instructions({
+                                axe::make(axe::op_code::OpConstant, {0}),
+                                axe::make(axe::op_code::OpPop, {}),
+                                axe::make(axe::op_code::OpConstant, {1}),
+                                axe::make(axe::op_code::OpReturnValue, {}),
+                            })),
+            },
+            {
+                axe::make(axe::op_code::OpConstant, {2}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
+        {
+            "fn void_func() { }",
+            {
+                axe::object(axe::object_type::Function,
+                            concatinate_instructions({
+                                axe::make(axe::op_code::OpReturn, {}),
+                            })),
+            },
+            {
+                axe::make(axe::op_code::OpConstant, {0}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
+    };
+
+    for (auto& test : tests) {
+        run_compiler_test(test);
+    }
+}

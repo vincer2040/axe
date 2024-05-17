@@ -3,6 +3,12 @@
 
 namespace axe {
 
+compiled_function::compiled_function(instructions ins) : ins(ins) {}
+
+const instructions& compiled_function::get_instructions() const {
+    return this->ins;
+}
+
 object::object() : type(object_type::Null), data(std::monostate()) {}
 
 object::object(object_type type, object_data data)
@@ -11,7 +17,7 @@ object::object(object_type type, object_data data)
 object_type object::get_type() const { return this->type; }
 
 const char* const object_type_strings[] = {
-    "Null", "Bool", "Integer", "Float", "String", "Error",
+    "Null", "Bool", "Integer", "Float", "String", "Error", "Function",
 };
 
 const char* object::type_to_strig() const {
@@ -53,6 +59,13 @@ const std::string& object::get_error() const {
     return std::get<std::string>(this->data);
 }
 
+const compiled_function& object::get_function() const {
+    AXE_CHECK(this->type == object_type::Function,
+              "trying to get Function from type %s",
+              object_type_strings[(int)this->type]);
+    return std::get<compiled_function>(this->data);
+}
+
 std::string object::string() const {
     std::string res;
     switch (this->type) {
@@ -73,6 +86,9 @@ std::string object::string() const {
         break;
     case object_type::Error:
         res += "ERROR: " + this->get_error();
+        break;
+    case object_type::Function:
+        res += "function";
         break;
     }
     return res;
@@ -116,6 +132,21 @@ bool object::operator==(const object& other) const {
         return this->get_string() == other.get_string();
     case object_type::Error:
         return false;
+    case object_type::Function: {
+        auto& this_ins = this->get_function().get_instructions();
+        auto& other_ins = other.get_function().get_instructions();
+        if (this_ins.size() != other_ins.size()) {
+            return false;
+        }
+        for (size_t i = 0; i < this_ins.size(); ++i) {
+            if (this_ins[i] != other_ins[i]) {
+                return false;
+            }
+        }
+        return true;
+    };
+    default:
+        break;
     }
     return false;
 }
@@ -138,6 +169,8 @@ bool object::operator!=(const object& other) const {
         return this->get_string() != other.get_string();
     case object_type::Error:
         return true;
+    default:
+        break;
     }
     return true;
 }

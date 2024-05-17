@@ -2,6 +2,7 @@
 
 #define __AXE_OBJECT_H__
 
+#include "code.h"
 #include <string>
 #include <variant>
 
@@ -14,10 +15,20 @@ enum class object_type {
     Float,
     String,
     Error,
+    Function,
+};
+
+class compiled_function {
+  public:
+    compiled_function(instructions ins);
+    const instructions& get_instructions() const;
+
+  private:
+    instructions ins;
 };
 
 using object_data =
-    std::variant<std::monostate, bool, int64_t, double, std::string>;
+    std::variant<std::monostate, bool, int64_t, double, std::string, compiled_function>;
 
 class object {
   public:
@@ -30,6 +41,7 @@ class object {
     bool get_bool() const;
     const std::string& get_string() const;
     const std::string& get_error() const;
+    const compiled_function& get_function() const;
 
     const char* type_to_strig() const;
     std::string string() const;

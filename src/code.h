@@ -30,6 +30,9 @@ enum class op_code {
     OpNull = 15,
     OpGetGlobal = 16,
     OpSetGlobal = 17,
+    OpCall = 18,
+    OpReturnValue = 19,
+    OpReturn = 20,
 };
 
 class definition {

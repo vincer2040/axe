@@ -6,7 +6,11 @@
 
 namespace axe {
 
-template <> compiler<std::vector<object>, symbol_table>::compiler() {}
+template <>
+compiler<std::vector<object>, symbol_table>::compiler() : scope_index(0) {
+    compilation_scope main_scope = {std::vector<uint8_t>(), {}, {}};
+    this->scopes.push_back(main_scope);
+}
 
 template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
 compiler<ConstantsLifeTime, SymbolTableLifeTime>::compiler(
@@ -22,7 +26,20 @@ compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile(const ast& ast) {
 template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
 const byte_code
 compiler<ConstantsLifeTime, SymbolTableLifeTime>::get_byte_code() const {
-    return {this->ins, this->constants};
+    return {this->get_current_instructions(), this->constants};
+}
+
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+instructions&
+compiler<ConstantsLifeTime, SymbolTableLifeTime>::current_instructions() {
+    return this->scopes[this->scope_index].ins;
+}
+
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+const instructions&
+compiler<ConstantsLifeTime, SymbolTableLifeTime>::get_current_instructions()
+    const {
+    return this->scopes[this->scope_index].ins;
 }
 
 template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
@@ -37,8 +54,9 @@ size_t compiler<ConstantsLifeTime, SymbolTableLifeTime>::emit(
 template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
 size_t compiler<ConstantsLifeTime, SymbolTableLifeTime>::add_instruction(
     const std::vector<uint8_t> ins) {
-    size_t pos_new_instruction = this->ins.size();
-    this->ins.insert(this->ins.end(), ins.begin(), ins.end());
+    size_t pos_new_instruction = this->current_instructions().size();
+    this->current_instructions().insert(this->current_instructions().end(),
+                                        ins.begin(), ins.end());
     return pos_new_instruction;
 }
 
@@ -52,37 +70,73 @@ template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
 void compiler<ConstantsLifeTime, SymbolTableLifeTime>::set_last_instruction(
     op_code op, size_t position) {
     emitted_instruction last = {op, position};
-    emitted_instruction previous = this->last_instruction;
-    this->previous_instruction = previous;
-    this->last_instruction = last;
+    emitted_instruction previous =
+        this->scopes[this->scope_index].last_instruction;
+    this->scopes[this->scope_index].previous_instruction = previous;
+    this->scopes[this->scope_index].last_instruction = last;
 }
 
 template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
 bool compiler<ConstantsLifeTime,
               SymbolTableLifeTime>::last_instruction_is_pop() {
-    return this->last_instruction.op == op_code::OpPop;
+    return this->scopes[this->scope_index].last_instruction.op ==
+           op_code::OpPop;
+}
+
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+bool compiler<ConstantsLifeTime, SymbolTableLifeTime>::last_instruction_is(
+    op_code op) {
+    if (this->current_instructions().size() == 0) {
+        return false;
+    }
+    return this->scopes[this->scope_index].last_instruction.op == op;
 }
 
 template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
 void compiler<ConstantsLifeTime, SymbolTableLifeTime>::remove_last_pop() {
-    this->ins.pop_back();
-    this->last_instruction = this->previous_instruction;
+    auto previous = this->scopes[this->scope_index].previous_instruction;
+    this->current_instructions().pop_back();
+    this->scopes[this->scope_index].last_instruction = previous;
 }
 
 template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
 void compiler<ConstantsLifeTime, SymbolTableLifeTime>::replace_instruction(
     size_t position, std::vector<uint8_t> new_instruction) {
+    auto& ins = this->current_instructions();
     for (size_t i = 0; i < new_instruction.size(); ++i) {
-        this->ins[position + i] = new_instruction[i];
+        ins[position + i] = new_instruction[i];
     }
+}
+
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+void compiler<ConstantsLifeTime, SymbolTableLifeTime>::replace_last_pop_with_return() {
+    size_t last_position = this->scopes[this->scope_index].last_instruction.position;
+    this->replace_instruction(last_position, axe::make(op_code::OpReturnValue, {}));
+    this->scopes[this->scope_index].last_instruction.op = op_code::OpReturnValue;
 }
 
 template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
 void compiler<ConstantsLifeTime, SymbolTableLifeTime>::change_operand(
     size_t op_position, int operand) {
-    op_code op = static_cast<op_code>(this->ins[op_position]);
+    op_code op =
+        static_cast<op_code>(this->current_instructions()[op_position]);
     auto new_instruction = make(op, {operand});
     this->replace_instruction(op_position, new_instruction);
+}
+
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+void compiler<ConstantsLifeTime, SymbolTableLifeTime>::enter_scope() {
+    compilation_scope scope;
+    this->scopes.push_back(scope);
+    this->scope_index++;
+}
+
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+instructions compiler<ConstantsLifeTime, SymbolTableLifeTime>::leave_scope() {
+    instructions ins = this->current_instructions();
+    this->scopes.pop_back();
+    this->scope_index--;
+    return ins;
 }
 
 template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
@@ -107,6 +161,9 @@ compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_statement(
     case statement_type::LetStatement:
         err = this->compile_let_statement(statement.get_let());
         break;
+    case statement_type::ReturnStatement:
+        err = this->compile_return_statement(statement.get_return());
+        break;
     case statement_type::ExpressionStatement:
         err = this->compile_expression(statement.get_expression());
         this->emit(op_code::OpPop, {});
@@ -127,6 +184,18 @@ compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_let_statement(
     }
     auto symbol = this->symb_table.define(let.get_name());
     this->emit(op_code::OpSetGlobal, {(int)symbol.index});
+    return std::nullopt;
+}
+
+template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+std::optional<std::string>
+compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_return_statement(
+    const return_statement& ret) {
+    auto err = this->compile_expression(ret);
+    if (err.has_value()) {
+        return err;
+    }
+    this->emit(op_code::OpReturnValue, {});
     return std::nullopt;
 }
 
@@ -157,6 +226,9 @@ compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_expression(
         break;
     case expression_type::If:
         err = this->compile_if(expression.get_if());
+        break;
+    case expression_type::Function:
+        err = this->compile_function(expression.get_function());
         break;
     default:
         err = "cannot compile " + std::string(expression.get_type_string());
@@ -288,12 +360,12 @@ compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_if(
     if (err.has_value()) {
         return err;
     }
-    if (this->last_instruction_is_pop()) {
+    if (this->last_instruction_is(op_code::OpPop)) {
         this->remove_last_pop();
     }
 
     size_t jump_position = this->emit(op_code::OpJump, {9999});
-    size_t after_consequence_position = this->ins.size();
+    size_t after_consequence_position = this->current_instructions().size();
     this->change_operand(jump_not_truthy_position, after_consequence_position);
 
     auto& alternative = if_exp.get_alternative();
@@ -304,13 +376,34 @@ compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_if(
         if (err.has_value()) {
             return err;
         }
-        if (this->last_instruction_is_pop()) {
+        if (this->last_instruction_is(op_code::OpPop)) {
             this->remove_last_pop();
         }
     }
 
-    size_t after_alternative_position = this->ins.size();
+    size_t after_alternative_position = this->current_instructions().size();
     this->change_operand(jump_position, after_alternative_position);
+    return std::nullopt;
+}
+
+template <typename ConstantsLifeTime, typename SymbolTableLIfeTime>
+std::optional<std::string>
+compiler<ConstantsLifeTime, SymbolTableLIfeTime>::compile_function(
+    const function_expression& function) {
+    this->enter_scope();
+    auto err = this->compile_block(function.get_body());
+    if (err.has_value()) {
+        return err;
+    }
+    if (this->last_instruction_is(op_code::OpPop)) {
+        this->replace_last_pop_with_return();
+    }
+    if (!this->last_instruction_is(op_code::OpReturnValue)) {
+        this->emit(op_code::OpReturn, {});
+    }
+    instructions ins = this->leave_scope();
+    object obj(object_type::Function, std::move(ins));
+    this->emit(op_code::OpConstant, {this->add_constant(std::move(obj))});
     return std::nullopt;
 }
 
