@@ -320,15 +320,9 @@ expression parser::parse_function() {
 }
 
 expression parser::parse_call(expression name_expr) {
-    if (name_expr.get_type() != expression_type::Ident) {
-        std::string err = "expected Ident expression, got " +
-                          std::string(name_expr.type_to_string());
-        this->errors.push_back(err);
-        return expression();
-    }
-    auto name = name_expr.get_ident();
     auto args = this->parse_call_args();
-    call call(std::move(name), std::move(args));
+    call call(std::move(std::make_unique<expression>(std::move(name_expr))),
+              std::move(args));
     return expression(expression_type::Call, std::move(call));
 }
 

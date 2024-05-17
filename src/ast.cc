@@ -251,16 +251,18 @@ std::string function_expression::string() const {
     return res;
 }
 
-call::call(std::string name, std::vector<expression> args)
-    : name(std::move(name)), args(std::move(args)) {}
+call::call(std::unique_ptr<expression> function, std::vector<expression> args)
+    : function(std::move(function)), args(std::move(args)) {}
 
-const std::string& call::get_name() const { return this->name; }
+const std::unique_ptr<expression>& call::get_function() const {
+    return this->function;
+}
 
 const std::vector<expression>& call::get_args() const { return this->args; }
 
 std::string call::string() const {
     std::string res;
-    res += this->name;
+    res += this->function->string();
     res += "(";
     for (size_t i = 0; i < this->args.size(); ++i) {
         res += this->args[i].string();

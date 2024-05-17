@@ -191,15 +191,15 @@ class function_expression : public ast_node {
 
 class call : public ast_node {
   public:
-    call(std::string name, std::vector<class expression> args);
+    call(std::unique_ptr<class expression> function, std::vector<class expression> args);
 
-    const std::string& get_name() const;
+    const std::unique_ptr<class expression>& get_function() const;
     const std::vector<class expression>& get_args() const;
 
     std::string string() const;
 
   private:
-    std::string name;
+    std::unique_ptr<class expression> function;
     std::vector<class expression> args;
 };
 

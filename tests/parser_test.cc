@@ -145,7 +145,8 @@ TEST(Parser, Idents) {
     }
 }
 
-void test_string(const axe::expression& expression, const std::string& expected) {
+void test_string(const axe::expression& expression,
+                 const std::string& expected) {
     EXPECT_EQ(expression.get_type(), axe::expression_type::String);
     auto& str = expression.get_string();
     EXPECT_STREQ(str.c_str(), expected.c_str());
@@ -153,8 +154,10 @@ void test_string(const axe::expression& expression, const std::string& expected)
 
 TEST(Parser, Strings) {
     parser_test<std::string> tests[] = {
-        "\"foo\"", "foo",
-        "\"foo bar\"", "foo bar",
+        "\"foo\"",
+        "foo",
+        "\"foo bar\"",
+        "foo bar",
     };
     for (auto& test : tests) {
         axe::lexer l(test.input);
@@ -620,7 +623,8 @@ TEST(Parser, Call) {
     auto& expression = statement.get_expression();
     EXPECT_EQ(expression.get_type(), axe::expression_type::Call);
     auto& call = expression.get_call();
-    EXPECT_STREQ(call.get_name().c_str(), "add");
+    auto& fn = call.get_function();
+    test_ident(*fn, "add");
     int64_t expected_args[] = {1, 2};
     size_t length = sizeof expected_args / sizeof expected_args[0];
     auto& args = call.get_args();
