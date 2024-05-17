@@ -174,17 +174,17 @@ class match : public ast_node {
 
 class function_expression : public ast_node {
   public:
-    function_expression(std::string name, std::vector<std::string> params,
+    function_expression(std::optional<std::string> name, std::vector<std::string> params,
                         block_statement body);
 
-    const std::string& get_name() const;
+    const std::optional<std::string>& get_name() const;
     const std::vector<std::string>& get_params() const;
     const block_statement& get_body() const;
 
     std::string string() const;
 
   private:
-    std::string name;
+    std::optional<std::string> name;
     std::vector<std::string> params;
     block_statement body;
 };

@@ -565,7 +565,35 @@ TEST(Parser, Functions) {
     auto& expression = statement.get_expression();
     EXPECT_EQ(expression.get_type(), axe::expression_type::Function);
     auto& function = expression.get_function();
-    EXPECT_STREQ(function.get_name().c_str(), "add");
+    EXPECT_TRUE(function.get_name().has_value());
+    EXPECT_STREQ((*function.get_name()).c_str(), "add");
+    const char* expected_params[] = {"a", "b"};
+    size_t length = sizeof expected_params / sizeof expected_params[0];
+    auto& params = function.get_params();
+    EXPECT_EQ(params.size(), length);
+    for (size_t i = 0; i < length; ++i) {
+        const char* expected = expected_params[i];
+        auto& param = params[i];
+        EXPECT_STREQ(param.c_str(), expected);
+    }
+    auto body_str = function.get_body().string();
+    EXPECT_STREQ(body_str.c_str(), "(a + b)");
+}
+
+TEST(Parser, AnonymousFunction) {
+    std::string input = "fn (a, b) { a + b }";
+    axe::lexer lexer(input);
+    axe::parser parser(lexer);
+    auto ast = parser.parse();
+    check_errors(parser);
+    auto& statements = ast.get_statements();
+    EXPECT_EQ(statements.size(), 1);
+    auto& statement = statements[0];
+    EXPECT_EQ(statement.get_type(), axe::statement_type::ExpressionStatement);
+    auto& expression = statement.get_expression();
+    EXPECT_EQ(expression.get_type(), axe::expression_type::Function);
+    auto& function = expression.get_function();
+    EXPECT_FALSE(function.get_name().has_value());
     const char* expected_params[] = {"a", "b"};
     size_t length = sizeof expected_params / sizeof expected_params[0];
     auto& params = function.get_params();

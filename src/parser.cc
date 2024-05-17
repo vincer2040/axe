@@ -301,10 +301,11 @@ expression parser::parse_match() {
 }
 
 expression parser::parse_function() {
-    if (!this->expect_peek(token_type::Ident)) {
-        return expression();
+    std::optional<std::string> name = std::nullopt;
+    if (this->peek_token_is(token_type::Ident)) {
+        this->next_token();
+        name = this->cur_token.get_literal();
     }
-    auto name = this->cur_token.get_literal();
     if (!this->expect_peek(token_type::LParen)) {
         return expression();
     }

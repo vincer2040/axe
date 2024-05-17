@@ -215,12 +215,14 @@ std::string match::string() const {
     return res;
 }
 
-function_expression::function_expression(std::string name,
+function_expression::function_expression(std::optional<std::string> name,
                                          std::vector<std::string> params,
                                          block_statement body)
     : name(std::move(name)), params(std::move(params)), body(std::move(body)) {}
 
-const std::string& function_expression::get_name() const { return this->name; }
+const std::optional<std::string>& function_expression::get_name() const {
+    return this->name;
+}
 
 const std::vector<std::string>& function_expression::get_params() const {
     return this->params;
@@ -232,7 +234,9 @@ const block_statement& function_expression::get_body() const {
 
 std::string function_expression::string() const {
     std::string res = "fn ";
-    res += this->name;
+    if (this->name.has_value()) {
+        res += *this->name;
+    }
     res += "(";
     for (size_t i = 0; i < this->params.size(); ++i) {
         res += this->params[i];
