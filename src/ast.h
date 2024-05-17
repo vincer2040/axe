@@ -174,8 +174,8 @@ class match : public ast_node {
 
 class function_expression : public ast_node {
   public:
-    function_expression(std::optional<std::string> name, std::vector<std::string> params,
-                        block_statement body);
+    function_expression(std::optional<std::string> name,
+                        std::vector<std::string> params, block_statement body);
 
     const std::optional<std::string>& get_name() const;
     const std::vector<std::string>& get_params() const;
@@ -191,7 +191,8 @@ class function_expression : public ast_node {
 
 class call : public ast_node {
   public:
-    call(std::unique_ptr<class expression> function, std::vector<class expression> args);
+    call(std::unique_ptr<class expression> function,
+         std::vector<class expression> args);
 
     const std::unique_ptr<class expression>& get_function() const;
     const std::vector<class expression>& get_args() const;

@@ -281,18 +281,18 @@ expression::expression(expression_type type, expression_data data)
     : type(type), data(std::move(data)) {}
 
 const char* const expression_type_strings[] = {
-    "Illegal", "Integer", "Float", "Bool",     "String", "Prefix",
-    "Infix",   "If",      "Match", "Function", "Call",
+    "Illegal", "Integer", "Float", "Bool",  "String",   "Ident",
+    "Prefix",  "Infix",   "If",    "Match", "Function", "Call",
 };
 
 expression_type expression::get_type() const { return this->type; }
 
 const char* expression::get_type_string() const {
-    return expression_type_strings[(int)this->type - 1];
+    return expression_type_strings[(int)this->type];
 }
 
 const char* expression::type_to_string() const {
-    return expression_type_strings[(int)this->type - 1];
+    return expression_type_strings[(int)this->type];
 }
 
 int64_t expression::get_int() const {
