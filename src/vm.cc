@@ -10,8 +10,8 @@ vm<std::vector<object>>::vm(byte_code byte_code)
       frames(std::vector<frame>(MAX_FRAMES, frame())),
       globals(std::vector<object>(GLOBALS_SIZE, object())), stack_pointer(0),
       frames_index(1) {
-    auto main_fn = compiled_function(std::move(byte_code.ins));
-    auto main_frame = frame(main_fn);
+    auto main_fn = compiled_function(std::move(byte_code.ins), 0);
+    auto main_frame = frame(main_fn, 0);
     this->frames[0] = main_frame;
 }
 
@@ -20,8 +20,8 @@ vm<GlobalsLifeTime>::vm(byte_code byte_code, GlobalsLifeTime globals)
     : constants(std::move(byte_code.constants)),
       frames(std::vector<frame>(MAX_FRAMES, frame())), globals(globals),
       stack_pointer(0), frames_index(1) {
-    auto main_fn = compiled_function(std::move(byte_code.ins));
-    auto main_frame = frame(main_fn);
+    auto main_fn = compiled_function(std::move(byte_code.ins), 0);
+    auto main_frame = frame(main_fn, 0);
     this->frames[0] = main_frame;
 }
 
@@ -149,24 +149,37 @@ std::optional<std::string> vm<GlobalsLifeTime>::run() {
         case op_code::OpCall: {
             auto& fn_obj = this->stack[this->stack_pointer - 1];
             if (fn_obj.get_type() != object_type::Function) {
-                err = "calling non function";
+                err = "calling non function, " + std::string(fn_obj.type_to_strig());
                 return err;
             }
             auto& fn = fn_obj.get_function();
-            frame frame(fn.get_instructions());
+            frame frame(fn, this->stack_pointer);
             this->push_frame(frame);
+            this->stack_pointer = frame.base_pointer + fn.get_num_locals();
         } break;
         case op_code::OpReturnValue: {
             auto return_value = this->pop();
-            this->pop_frame();
-            this->pop();
+            auto& frame = this->pop_frame();
+            this->stack_pointer = frame.base_pointer - 1;
             err = this->push(return_value);
         } break;
-        case op_code::OpReturn:
-            this->pop_frame();
-            this->pop();
+        case op_code::OpReturn: {
+            auto& frame = this->pop_frame();
+            this->stack_pointer = frame.base_pointer - 1;
             err = this->push(object());
-            break;
+        } break;
+        case op_code::OpSetLocal: {
+            size_t local_index = ins[instruction_pointer + 1];
+            this->current_frame().instruction_pointer += 1;
+            auto& frame = this->current_frame();
+            this->stack[frame.base_pointer + local_index] = this->pop();
+        } break;
+        case op_code::OpGetLocal: {
+            size_t local_index = ins[instruction_pointer + 1];
+            this->current_frame().instruction_pointer += 1;
+            auto& frame = this->current_frame();
+            err = this->push(this->stack[frame.base_pointer + local_index]);
+        } break;
         }
     }
     return err;

@@ -1,6 +1,7 @@
 #include "compiler.h"
 #include "lexer.h"
 #include "parser.h"
+#include "symbol_table.h"
 #include "vm.h"
 #include <iostream>
 #include <string>

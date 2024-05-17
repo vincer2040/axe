@@ -36,6 +36,8 @@ static const std::unordered_map<op_code, definition> definitions = {
     {op_code::OpCall, definition("OpCall", {})},
     {op_code::OpReturnValue, definition("OpReturnValue", {})},
     {op_code::OpReturn, definition("OpReturn", {})},
+    {op_code::OpGetLocal, definition("OpGetLocal", {1})},
+    {op_code::OpSetLocal, definition("OpSetLocal", {1})},
 };
 
 std::optional<const definition> lookup(op_code op) {
@@ -71,6 +73,9 @@ std::vector<uint8_t> make(op_code op, const std::vector<int> operands) {
         switch (width) {
         case 2:
             put_big_endian_u16(instruction, operand);
+            break;
+        case 1:
+            instruction.push_back(static_cast<uint8_t>(operand));
             break;
         }
     }
@@ -142,6 +147,8 @@ const std::pair<std::vector<int>, int> read_operands(const definition& def,
         case 2:
             operands.push_back(read_u16(ins, offset));
             break;
+        case 1:
+            operands.push_back(ins[offset]);
         }
         offset += width;
     }

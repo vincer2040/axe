@@ -9,9 +9,10 @@ namespace axe {
 class frame {
   public:
     frame();
-    frame(compiled_function function);
+    frame(compiled_function function, size_t base_pointer);
 
     ssize_t instruction_pointer;
+    size_t base_pointer;
 
     const instructions& get_instructions() const;
 

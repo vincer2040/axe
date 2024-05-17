@@ -33,6 +33,8 @@ enum class op_code {
     OpCall = 18,
     OpReturnValue = 19,
     OpReturn = 20,
+    OpGetLocal = 21,
+    OpSetLocal = 22,
 };
 
 class definition {

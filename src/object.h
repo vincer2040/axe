@@ -21,11 +21,13 @@ enum class object_type {
 class compiled_function {
   public:
     compiled_function();
-    compiled_function(instructions ins);
+    compiled_function(instructions ins, size_t num_locals);
     const instructions& get_instructions() const;
+    size_t get_num_locals() const;
 
   private:
     instructions ins;
+    size_t num_locals;
 };
 
 using object_data =

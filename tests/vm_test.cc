@@ -269,6 +269,50 @@ TEST(VM, FirstClassFunctions) {
             "returnsOneReturner()();",
             1,
         },
+        // TODO: figure out why this doesn't work when doing fn returnsOne() { 1
+        // } return returnsOne doesn't work
+        {
+            "fn returnsOneReturner() {\
+                let returnsOne = fn() { 1 }\
+                returnsOne\
+            }\
+            returnsOneReturner()()",
+            1,
+        },
+    };
+
+    for (auto& test : tests) {
+        run_vm_int_test(test);
+    }
+}
+
+TEST(VM, CallingFunctionsWithBindings) {
+    vm_test<int64_t> tests[] = {
+        {
+            "fn one() { let one = 1; one }; one()",
+            1,
+        },
+        {
+            "fn oneAndTwo() { let one = 1; let two = 2; one + two }; "
+            "oneAndTwo()",
+            3,
+        },
+        {
+            "fn oneAndTwo() { let one = 1; let two = 2; one + two }; fn "
+            "threeAndFour() { let three = 3; let four = 4; three + four } "
+            "oneAndTwo() + threeAndFour()",
+            10,
+        },
+        {
+            "fn firstFooBar() { let foobar = 50; foobar }; fn secondFooBar() { "
+            "let foobar = 100; foobar }; firstFooBar() + secondFooBar()",
+            150,
+        },
+        {"let globalSeed = 50;\
+                fn minusOne() { let num = 1; globalSeed - num }\
+                fn minusTwo() { let num = 2; globalSeed - num }\
+                minusOne() + minusTwo()",
+         97},
     };
 
     for (auto& test : tests) {

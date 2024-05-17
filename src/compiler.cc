@@ -7,11 +7,13 @@
 namespace axe {
 
 template <>
-compiler<constants_owned, symbol_table_owned>::compiler() : scope_index(0) {
+compiler<constants_owned, symbol_table_owned>::compiler()
+    : symb_table(symbol_table()), scope_index(0) {
     compilation_scope main_scope = {std::vector<uint8_t>(), {}, {}};
     this->scopes.push_back(main_scope);
 }
-template<>
+
+template <>
 compiler<constants_ref, symbol_table_ref>::compiler(
     symbol_table& symb_table, std::vector<object>& constants)
     : symb_table(symb_table), constants(constants), scope_index(0) {
@@ -135,6 +137,7 @@ void compiler<ConstantsLifeTime, SymbolTableLifeTime>::enter_scope() {
     compilation_scope scope;
     this->scopes.push_back(scope);
     this->scope_index++;
+    this->symb_table = symbol_table::with_outer(this->symb_table);
 }
 
 template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
@@ -142,6 +145,7 @@ instructions compiler<ConstantsLifeTime, SymbolTableLifeTime>::leave_scope() {
     instructions ins = this->current_instructions();
     this->scopes.pop_back();
     this->scope_index--;
+    this->symb_table = this->symb_table.get_outer();
     return ins;
 }
 
@@ -192,7 +196,11 @@ compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_let_statement(
         return err;
     }
     auto symbol = this->symb_table.define(let.get_name());
-    this->emit(op_code::OpSetGlobal, {(int)symbol.index});
+    if (symbol.scope == axe::symbol_scope::GlobalScope) {
+        this->emit(op_code::OpSetGlobal, {(int)symbol.index});
+    } else {
+        this->emit(op_code::OpSetLocal, {(int)symbol.index});
+    }
     return std::nullopt;
 }
 
@@ -275,7 +283,11 @@ compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_ident(
     if (!symbol.has_value()) {
         return "undefined variable " + ident;
     }
-    this->emit(op_code::OpGetGlobal, {(int)symbol->index});
+    if (symbol->scope == axe::symbol_scope::GlobalScope) {
+        this->emit(op_code::OpGetGlobal, {(int)symbol->index});
+    } else {
+        this->emit(op_code::OpGetLocal, {(int)symbol->index});
+    }
     return std::nullopt;
 }
 
@@ -413,8 +425,10 @@ compiler<ConstantsLifeTime, SymbolTableLIfeTime>::compile_function(
     if (!this->last_instruction_is(op_code::OpReturnValue)) {
         this->emit(op_code::OpReturn, {});
     }
+    size_t num_locals = this->symb_table.get_num_definitions();
     instructions ins = this->leave_scope();
-    object obj(object_type::Function, std::move(ins));
+    object obj(object_type::Function,
+               compiled_function(std::move(ins), num_locals));
     this->emit(op_code::OpConstant, {this->add_constant(std::move(obj))});
     auto& name = function.get_name();
     if (name.has_value()) {

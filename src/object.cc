@@ -3,13 +3,17 @@
 
 namespace axe {
 
-compiled_function::compiled_function() : ins(std::vector<uint8_t>()) {}
+compiled_function::compiled_function()
+    : ins(std::vector<uint8_t>()), num_locals(0) {}
 
-compiled_function::compiled_function(instructions ins) : ins(ins) {}
+compiled_function::compiled_function(instructions ins, size_t num_locals)
+    : ins(ins), num_locals(num_locals) {}
 
 const instructions& compiled_function::get_instructions() const {
     return this->ins;
 }
+
+size_t compiled_function::get_num_locals() const { return this->num_locals; }
 
 object::object() : type(object_type::Null), data(std::monostate()) {}
 
@@ -135,8 +139,13 @@ bool object::operator==(const object& other) const {
     case object_type::Error:
         return false;
     case object_type::Function: {
-        auto& this_ins = this->get_function().get_instructions();
-        auto& other_ins = other.get_function().get_instructions();
+        auto& this_func = this->get_function();
+        auto& other_func = other.get_function();
+        auto& this_ins = this_func.get_instructions();
+        auto& other_ins = other_func.get_instructions();
+        if (this_func.get_num_locals() != other_func.get_num_locals()) {
+            return false;
+        }
         if (this_ins.size() != other_ins.size()) {
             return false;
         }
