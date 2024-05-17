@@ -30,6 +30,10 @@ concatinate_instructions(const std::vector<axe::instructions>& instructions) {
 static void test_instructions(const std::vector<axe::instructions>& expected,
                               const axe::instructions& got) {
     auto concatted = concatinate_instructions(expected);
+    auto exp_str = axe::instructions_string(concatted);
+    auto got_str = axe::instructions_string(got);
+    // std::cout << "EXPECTED: " << exp_str << '\n';
+    // std::cout << "GOT: " << got_str << '\n';
     EXPECT_EQ(concatted.size(), got.size());
     for (size_t i = 0; i < concatted.size(); ++i) {
         EXPECT_EQ(concatted[i], got[i]);
@@ -336,7 +340,7 @@ TEST(Compiler, Strings) {
 TEST(Compiler, Functions) {
     compiler_test tests[] = {
         {
-            "fn add() { return 5 + 10 }",
+            "fn() { return 5 + 10 }",
             {
                 axe::object(axe::object_type::Integer, 5),
                 axe::object(axe::object_type::Integer, 10),
@@ -354,7 +358,7 @@ TEST(Compiler, Functions) {
             },
         },
         {
-            "fn add() { 5 + 10 }",
+            "fn() { 5 + 10 }",
             {
                 axe::object(axe::object_type::Integer, 5),
                 axe::object(axe::object_type::Integer, 10),
@@ -372,7 +376,7 @@ TEST(Compiler, Functions) {
             },
         },
         {
-            "fn add() { 1; 2 }",
+            "fn() { 1; 2 }",
             {
                 axe::object(axe::object_type::Integer, 1),
                 axe::object(axe::object_type::Integer, 2),
@@ -390,7 +394,7 @@ TEST(Compiler, Functions) {
             },
         },
         {
-            "fn void_func() { }",
+            "fn() { }",
             {
                 axe::object(axe::object_type::Function,
                             concatinate_instructions({
@@ -399,6 +403,49 @@ TEST(Compiler, Functions) {
             },
             {
                 axe::make(axe::op_code::OpConstant, {0}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
+    };
+
+    for (auto& test : tests) {
+        run_compiler_test(test);
+    }
+}
+
+TEST(Compiler, FunctionCalls) {
+    compiler_test tests[] = {
+        {
+            "fn() { 24 }()",
+            {
+                axe::object(axe::object_type::Integer, 24),
+                axe::object(axe::object_type::Function,
+                            concatinate_instructions({
+                                axe::make(axe::op_code::OpConstant, {0}),
+                                axe::make(axe::op_code::OpReturnValue, {}),
+                            })),
+            },
+            {
+                axe::make(axe::op_code::OpConstant, {1}),
+                axe::make(axe::op_code::OpCall, {}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
+        {
+            "fn no_arg() { 24 } no_arg()",
+            {
+                axe::object(axe::object_type::Integer, 24),
+                axe::object(axe::object_type::Function,
+                            concatinate_instructions({
+                                axe::make(axe::op_code::OpConstant, {0}),
+                                axe::make(axe::op_code::OpReturnValue, {}),
+                            })),
+            },
+            {
+                axe::make(axe::op_code::OpConstant, {1}),
+                axe::make(axe::op_code::OpSetGlobal, {0}),
+                axe::make(axe::op_code::OpGetGlobal, {0}),
+                axe::make(axe::op_code::OpCall, {}),
                 axe::make(axe::op_code::OpPop, {}),
             },
         },

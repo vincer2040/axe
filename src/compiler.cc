@@ -109,10 +109,14 @@ void compiler<ConstantsLifeTime, SymbolTableLifeTime>::replace_instruction(
 }
 
 template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
-void compiler<ConstantsLifeTime, SymbolTableLifeTime>::replace_last_pop_with_return() {
-    size_t last_position = this->scopes[this->scope_index].last_instruction.position;
-    this->replace_instruction(last_position, axe::make(op_code::OpReturnValue, {}));
-    this->scopes[this->scope_index].last_instruction.op = op_code::OpReturnValue;
+void compiler<ConstantsLifeTime,
+              SymbolTableLifeTime>::replace_last_pop_with_return() {
+    size_t last_position =
+        this->scopes[this->scope_index].last_instruction.position;
+    this->replace_instruction(last_position,
+                              axe::make(op_code::OpReturnValue, {}));
+    this->scopes[this->scope_index].last_instruction.op =
+        op_code::OpReturnValue;
 }
 
 template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
@@ -166,7 +170,10 @@ compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_statement(
         break;
     case statement_type::ExpressionStatement:
         err = this->compile_expression(statement.get_expression());
-        this->emit(op_code::OpPop, {});
+        // current work around for setting functions
+        if (!this->last_instruction_is(op_code::OpSetGlobal)) {
+            this->emit(op_code::OpPop, {});
+        }
         break;
     default:
         AXE_UNREACHABLE;
@@ -229,6 +236,9 @@ compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_expression(
         break;
     case expression_type::Function:
         err = this->compile_function(expression.get_function());
+        break;
+    case expression_type::Call:
+        err = this->compile_call(expression.get_call());
         break;
     default:
         err = "cannot compile " + std::string(expression.get_type_string());
@@ -404,6 +414,23 @@ compiler<ConstantsLifeTime, SymbolTableLIfeTime>::compile_function(
     instructions ins = this->leave_scope();
     object obj(object_type::Function, std::move(ins));
     this->emit(op_code::OpConstant, {this->add_constant(std::move(obj))});
+    auto& name = function.get_name();
+    if (name.has_value()) {
+        auto symbol = this->symb_table.define(*name);
+        this->emit(op_code::OpSetGlobal, {(int)symbol.index});
+    }
+    return std::nullopt;
+}
+
+template <typename ConstantsLifeTime, typename SymbolTableLIfeTime>
+std::optional<std::string>
+compiler<ConstantsLifeTime, SymbolTableLIfeTime>::compile_call(
+    const call& call) {
+    auto err = this->compile_expression(*call.get_function());
+    if (err.has_value()) {
+        return err;
+    }
+    this->emit(op_code::OpCall, {});
     return std::nullopt;
 }
 

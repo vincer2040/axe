@@ -55,6 +55,11 @@ add_library(
 )
 
 add_library(
+    frame
+    src/frame.cc
+)
+
+add_library(
     vm
     src/vm.cc
 )
@@ -94,6 +99,12 @@ target_link_libraries(
 )
 
 target_link_libraries(
+    frame
+    object
+)
+
+target_link_libraries(
     vm
     object
+    frame
 )

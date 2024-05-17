@@ -69,6 +69,7 @@ class compiler {
     std::optional<std::string> compile_infix(const infix& infix);
     std::optional<std::string> compile_if(const if_expression& if_exp);
     std::optional<std::string> compile_function(const function_expression& function);
+    std::optional<std::string> compile_call(const call& call);
 
     std::optional<std::string> compile_block(const block_statement& block);
 };

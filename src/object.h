@@ -20,6 +20,7 @@ enum class object_type {
 
 class compiled_function {
   public:
+    compiled_function();
     compiled_function(instructions ins);
     const instructions& get_instructions() const;
 

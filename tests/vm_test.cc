@@ -218,3 +218,60 @@ TEST(VM, Strings) {
         run_vm_string_test(test);
     }
 }
+
+TEST(VM, FunctionCallsNoArgs) {
+    vm_test<int64_t> tests[] = {
+        {"fn fivePlusTen() { 5 + 10 }; fivePlusTen()", 15},
+        {
+            "fn one() { 1; };\
+            fn two() { 2; };\
+            one() + two()",
+            3,
+        },
+        {
+            "fn a() { 1 }\
+            fn b() { a() + 1 };\
+            fn c() { b() + 1 };\
+            c()",
+            3,
+        },
+        {
+            "fn earlyExit() { return 99; 100; }; earlyExit()",
+            99,
+        },
+        {
+            "fn earlyExit() { return 99; return 100; }; earlyExit()",
+            99,
+        },
+    };
+
+    for (auto& test : tests) {
+        run_vm_int_test(test);
+    }
+}
+
+TEST(VM, FunctionNoReturn) {
+    std::string tests[] = {
+        "fn noReturn() { }; noReturn()",
+        "fn noReturn() { }; fn noReturnTwo() { noReturn(); }; noReturn(); "
+        "noReturnTwo()",
+    };
+
+    for (auto& test : tests) {
+        run_vm_null_test(test);
+    }
+}
+
+TEST(VM, FirstClassFunctions) {
+    vm_test<int64_t> tests[] = {
+        {
+            "fn returnsOne() { 1 }; fn returnsOneReturner() { returnsOne }; "
+            "returnsOneReturner()();",
+            1,
+        },
+    };
+
+    for (auto& test : tests) {
+        run_vm_int_test(test);
+    }
+}

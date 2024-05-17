@@ -4,11 +4,13 @@
 
 #include "code.h"
 #include "compiler.h"
+#include "frame.h"
 #include "object.h"
 #include <vector>
 
 #define STACK_SIZE 2048
 #define GLOBALS_SIZE 65536
+#define MAX_FRAMES 1024
 
 namespace axe {
 
@@ -23,10 +25,18 @@ template <typename GlobalsLifeTime> class vm {
 
   private:
     std::vector<object> constants;
-    instructions ins;
+
+    std::vector<frame> frames;
+    size_t frames_index;
+
     object stack[STACK_SIZE];
-    GlobalsLifeTime globals;
     size_t stack_pointer;
+
+    GlobalsLifeTime globals;
+
+    frame& current_frame();
+    void push_frame(frame frame);
+    frame& pop_frame();
 
     std::optional<std::string> push(const object& obj);
     const object& pop();

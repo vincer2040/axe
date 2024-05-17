@@ -3,6 +3,8 @@
 
 namespace axe {
 
+compiled_function::compiled_function() : ins(std::vector<uint8_t>()) {}
+
 compiled_function::compiled_function(instructions ins) : ins(ins) {}
 
 const instructions& compiled_function::get_instructions() const {
