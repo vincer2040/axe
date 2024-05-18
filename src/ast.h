@@ -28,7 +28,7 @@ class prefix : public ast_node {
     prefix_operator get_op() const;
     const std::unique_ptr<expression>& get_rhs() const;
 
-    std::string string() const;
+    std::string string() const override;
 
   private:
     prefix_operator op;
@@ -57,7 +57,7 @@ class infix : public ast_node {
     const std::unique_ptr<class expression>& get_lhs() const;
     const std::unique_ptr<class expression>& get_rhs() const;
 
-    std::string string() const;
+    std::string string() const override;
 
   private:
     infix_operator op;
@@ -71,7 +71,7 @@ class block_statement : public ast_node {
 
     const std::vector<class statement>& get_block() const;
 
-    std::string string() const;
+    std::string string() const override;
 
   private:
     std::vector<class statement> block;
@@ -87,7 +87,7 @@ class if_expression : public ast_node {
     const block_statement& get_consequence() const;
     const std::optional<block_statement>& get_alternative() const;
 
-    std::string string() const;
+    std::string string() const override;
 
   private:
     std::unique_ptr<class expression> cond;
@@ -111,7 +111,7 @@ class match_branch_pattern : public ast_node {
     match_branch_pattern_type get_type() const;
     const std::unique_ptr<class expression>& get_expression_pattern() const;
 
-    std::string string() const;
+    std::string string() const override;
 
   private:
     match_branch_pattern_type type;
@@ -135,7 +135,7 @@ class match_branch_consequence : public ast_node {
     const std::unique_ptr<class expression>& get_expression_consequence() const;
     const block_statement& get_block_statement_consequence() const;
 
-    std::string string() const;
+    std::string string() const override;
 
   private:
     match_branch_consequence_type type;
@@ -150,7 +150,7 @@ class match_branch : public ast_node {
     const match_branch_pattern& get_pattern() const;
     const match_branch_consequence& get_consequence() const;
 
-    std::string string() const;
+    std::string string() const override;
 
   private:
     match_branch_pattern pattern;
@@ -165,7 +165,7 @@ class match : public ast_node {
     const std::unique_ptr<class expression>& get_patten() const;
     const std::vector<match_branch>& get_branches() const;
 
-    std::string string() const;
+    std::string string() const override;
 
   private:
     std::unique_ptr<class expression> pattern;
@@ -181,7 +181,7 @@ class function_expression : public ast_node {
     const std::vector<std::string>& get_params() const;
     const block_statement& get_body() const;
 
-    std::string string() const;
+    std::string string() const override;
 
   private:
     std::optional<std::string> name;
@@ -197,7 +197,7 @@ class call : public ast_node {
     const std::unique_ptr<class expression>& get_function() const;
     const std::vector<class expression>& get_args() const;
 
-    std::string string() const;
+    std::string string() const override;
 
   private:
     std::unique_ptr<class expression> function;
@@ -244,7 +244,7 @@ class expression : public ast_node {
 
     const char* type_to_string() const;
 
-    std::string string() const;
+    std::string string() const override;
 
   private:
     expression_type type;
@@ -258,7 +258,7 @@ class let_statement : public ast_node {
     const std::string& get_name() const;
     const expression& get_value() const;
 
-    std::string string() const;
+    std::string string() const override;
 
   private:
     std::string name;
@@ -286,7 +286,7 @@ class statement : public ast_node {
     const return_statement& get_return() const;
     const expression& get_expression() const;
 
-    std::string string() const;
+    std::string string() const override;
 
   private:
     statement_type type;
@@ -299,7 +299,7 @@ class ast : public ast_node {
 
     const std::vector<statement>& get_statements() const;
 
-    std::string string() const;
+    std::string string() const override;
 
   private:
     std::vector<statement> statements;
