@@ -22,6 +22,8 @@ static precedence get_precedence(token_type type) {
         return precedence::Product;
     case token_type::LParen:
         return precedence::Call;
+    case token_type::Assign:
+        return precedence::Assign;
     default:
         break;
     }
@@ -183,6 +185,10 @@ expression parser::parse_expression(precedence precedence) {
             expression =
                 this->parse_infix(infix_operator::NotEq, std::move(expression));
             break;
+        case token_type::Assign:
+            this->next_token();
+            expression = this->parse_assign(std::move(expression));
+            break;
         case token_type::LParen:
             this->next_token();
             expression = this->parse_call(std::move(expression));
@@ -236,6 +242,19 @@ expression parser::parse_infix(infix_operator op, expression lhs) {
     auto rhs = std::make_unique<expression>(this->parse_expression(precedence));
     infix infix(op, std::move(lhs_unique), std::move(rhs));
     return expression(expression_type::Infix, std::move(infix));
+}
+
+expression parser::parse_assign(expression ident) {
+    if (ident.get_type() != expression_type::Ident) {
+        std::string err =
+            "cannot assign to " + std::string(ident.type_to_string());
+        return expression();
+    }
+    auto precedence = this->cur_precedence();
+    this->next_token();
+    auto rhs = std::make_unique<expression>(this->parse_expression(precedence));
+    assignment assignment(ident.get_ident(), std::move(rhs));
+    return expression(expression_type::Assignment, std::move(assignment));
 }
 
 expression parser::parse_group() {

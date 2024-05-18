@@ -77,6 +77,21 @@ class block_statement : public ast_node {
     std::vector<class statement> block;
 };
 
+class assignment : public ast_node {
+  public:
+    assignment(const std::string& ident,
+               std::unique_ptr<class expression> rhs);
+
+    const std::string& get_ident() const;
+    const std::unique_ptr<class expression>& get_rhs() const;
+
+    std::string string() const override;
+
+  private:
+    std::string ident;
+    std::unique_ptr<class expression> rhs;
+};
+
 class if_expression : public ast_node {
   public:
     if_expression(std::unique_ptr<class expression> cond,
@@ -213,6 +228,7 @@ enum class expression_type {
     Ident,
     Prefix,
     Infix,
+    Assignment,
     If,
     Match,
     Function,
@@ -221,7 +237,7 @@ enum class expression_type {
 
 using expression_data =
     std::variant<std::monostate, int64_t, double, bool, std::string, prefix,
-                 infix, if_expression, match, function_expression, call>;
+                 infix, assignment, if_expression, match, function_expression, call>;
 
 class expression : public ast_node {
   public:
@@ -237,6 +253,7 @@ class expression : public ast_node {
     const std::string& get_ident() const;
     const prefix& get_prefix() const;
     const infix& get_infix() const;
+    const assignment& get_assignment() const;
     const if_expression& get_if() const;
     const match& get_match() const;
     const function_expression& get_function() const;

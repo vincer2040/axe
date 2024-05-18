@@ -62,6 +62,24 @@ std::string prefix::string() const {
     return res;
 }
 
+assignment::assignment(const std::string& ident,
+                       std::unique_ptr<expression> rhs)
+    : ident(ident), rhs(std::move(rhs)) {}
+
+const std::string& assignment::get_ident() const { return this->ident; }
+
+const std::unique_ptr<expression>& assignment::get_rhs() const {
+    return this->rhs;
+}
+
+std::string assignment::string() const {
+    std::string res;
+    res += this->ident;
+    res += " = ";
+    res += this->rhs->string();
+    return res;
+}
+
 block_statement::block_statement(std::vector<statement> block)
     : block(std::move(block)) {}
 
@@ -281,8 +299,8 @@ expression::expression(expression_type type, expression_data data)
     : type(type), data(std::move(data)) {}
 
 const char* const expression_type_strings[] = {
-    "Illegal", "Integer", "Float", "Bool",  "String",   "Ident",
-    "Prefix",  "Infix",   "If",    "Match", "Function", "Call",
+    "Illegal", "Integer",    "Float", "Bool",  "String",   "Ident", "Prefix",
+    "Infix",   "Assignment", "If",    "Match", "Function", "Call",
 };
 
 expression_type expression::get_type() const { return this->type; }
@@ -340,6 +358,13 @@ const infix& expression::get_infix() const {
     return std::get<infix>(this->data);
 }
 
+const assignment& expression::get_assignment() const {
+    AXE_CHECK(this->type == expression_type::Assignment,
+              "trying to get Assignment from type %s",
+              expression_type_strings[(int)this->type]);
+    return std::get<assignment>(this->data);
+}
+
 const if_expression& expression::get_if() const {
     AXE_CHECK(this->type == expression_type::If,
               "trying to get If from type %s",
@@ -392,6 +417,8 @@ std::string expression::string() const {
         return std::get<function_expression>(this->data).string();
     case expression_type::Call:
         return std::get<call>(this->data).string();
+    case expression_type::Assignment:
+        return std::get<assignment>(this->data).string();
     default:
         break;
     }

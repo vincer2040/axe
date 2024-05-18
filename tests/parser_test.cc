@@ -242,6 +242,37 @@ TEST(Parser, Infix) {
     }
 }
 
+struct assignment_test {
+    std::string ident;
+    axe::expression_type type;
+};
+
+TEST(Parser, Assignment) {
+    parser_test<assignment_test> tests[] = {
+        {"foo = 5", {"foo", axe::expression_type::Integer}},
+        {"foo = 5 == 5", {"foo", axe::expression_type::Infix}},
+        {"foo = bar()", {"foo", axe::expression_type::Call}},
+    };
+
+    for (auto& test : tests) {
+        axe::lexer l(test.input);
+        axe::parser p(l);
+        auto ast = p.parse();
+        check_errors(p);
+        auto& statements = ast.get_statements();
+        EXPECT_EQ(statements.size(), 1);
+        auto& statement = statements[0];
+        EXPECT_EQ(statement.get_type(),
+                  axe::statement_type::ExpressionStatement);
+        auto& expression = statement.get_expression();
+        EXPECT_EQ(expression.get_type(), axe::expression_type::Assignment);
+        auto& assignment = expression.get_assignment();
+        EXPECT_EQ(assignment.get_ident(), test.expected.ident);
+        auto& rhs = assignment.get_rhs();
+        EXPECT_EQ(rhs->get_type(), test.expected.type);
+    }
+}
+
 TEST(Parser, OperatorPrecedence) {
     parser_test<std::string> tests[] = {
         {"-a * b", "((-a) * b)"},
@@ -272,6 +303,9 @@ TEST(Parser, OperatorPrecedence) {
         {"add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
          "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))"},
         {"add(a + b + c * d / f + g)", "add((((a + b) + ((c * d) / f)) + g))"},
+        {"foo = 5;", "foo = 5"},
+        {"foo = (5 + 5);", "foo = (5 + 5)"},
+        {"foo = bar() + 5", "foo = (bar() + 5)"},
     };
 
     for (auto& test : tests) {

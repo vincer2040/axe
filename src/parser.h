@@ -11,12 +11,13 @@ namespace axe {
 
 enum class precedence {
     Lowest = 0,
-    Equals = 1,
-    LessGreater = 2,
-    Sum = 3,
-    Product = 4,
-    Prefix = 5,
-    Call = 6,
+    Assign = 1,
+    Equals = 2,
+    LessGreater = 3,
+    Sum = 4,
+    Product = 5,
+    Prefix = 6,
+    Call = 7,
 };
 
 class parser {
@@ -46,6 +47,7 @@ class parser {
     expression parse_ident();
     expression parse_prefix(prefix_operator op);
     expression parse_infix(infix_operator op, expression lhs);
+    expression parse_assign(expression ident);
     expression parse_group();
     expression parse_if();
     expression parse_match();
