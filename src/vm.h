@@ -40,6 +40,8 @@ template <typename GlobalsLifeTime> class vm {
 
     std::optional<std::string> push(const object& obj);
     const object& pop();
+
+    std::optional<std::string> call_function(size_t num_args);
 };
 
 } // namespace axe

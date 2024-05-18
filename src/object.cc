@@ -4,16 +4,19 @@
 namespace axe {
 
 compiled_function::compiled_function()
-    : ins(std::vector<uint8_t>()), num_locals(0) {}
+    : ins(std::vector<uint8_t>()), num_locals(0), num_params(0) {}
 
-compiled_function::compiled_function(instructions ins, size_t num_locals)
-    : ins(ins), num_locals(num_locals) {}
+compiled_function::compiled_function(instructions ins, size_t num_locals,
+                                     size_t num_params)
+    : ins(ins), num_locals(num_locals), num_params(num_params) {}
 
 const instructions& compiled_function::get_instructions() const {
     return this->ins;
 }
 
 size_t compiled_function::get_num_locals() const { return this->num_locals; }
+
+size_t compiled_function::get_num_params() const { return this->num_params; }
 
 object::object() : type(object_type::Null), data(std::monostate()) {}
 
@@ -143,6 +146,9 @@ bool object::operator==(const object& other) const {
         auto& other_func = other.get_function();
         auto& this_ins = this_func.get_instructions();
         auto& other_ins = other_func.get_instructions();
+        if (this_func.get_num_params() != other_func.get_num_params()) {
+            return false;
+        }
         if (this_func.get_num_locals() != other_func.get_num_locals()) {
             return false;
         }

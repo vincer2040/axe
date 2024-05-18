@@ -10,7 +10,7 @@ vm<std::vector<object>>::vm(byte_code byte_code)
       frames(std::vector<frame>(MAX_FRAMES, frame())),
       globals(std::vector<object>(GLOBALS_SIZE, object())), stack_pointer(0),
       frames_index(1) {
-    auto main_fn = compiled_function(std::move(byte_code.ins), 0);
+    auto main_fn = compiled_function(std::move(byte_code.ins), 0, 0);
     auto main_frame = frame(main_fn, 0);
     this->frames[0] = main_frame;
 }
@@ -20,7 +20,7 @@ vm<GlobalsLifeTime>::vm(byte_code byte_code, GlobalsLifeTime globals)
     : constants(std::move(byte_code.constants)),
       frames(std::vector<frame>(MAX_FRAMES, frame())), globals(globals),
       stack_pointer(0), frames_index(1) {
-    auto main_fn = compiled_function(std::move(byte_code.ins), 0);
+    auto main_fn = compiled_function(std::move(byte_code.ins), 0, 0);
     auto main_frame = frame(main_fn, 0);
     this->frames[0] = main_frame;
 }
@@ -147,15 +147,10 @@ std::optional<std::string> vm<GlobalsLifeTime>::run() {
             err = this->push(this->globals[global_index]);
         } break;
         case op_code::OpCall: {
-            auto& fn_obj = this->stack[this->stack_pointer - 1];
-            if (fn_obj.get_type() != object_type::Function) {
-                err = "calling non function, " + std::string(fn_obj.type_to_strig());
-                return err;
-            }
-            auto& fn = fn_obj.get_function();
-            frame frame(fn, this->stack_pointer);
-            this->push_frame(frame);
-            this->stack_pointer = frame.base_pointer + fn.get_num_locals();
+            size_t num_args = ins[instruction_pointer + 1];
+            this->current_frame().instruction_pointer++;
+
+            err = this->call_function(num_args);
         } break;
         case op_code::OpReturnValue: {
             auto return_value = this->pop();
@@ -212,6 +207,24 @@ template <typename GlobalsLifeTime> const object& vm<GlobalsLifeTime>::pop() {
     auto& res = this->stack[this->stack_pointer - 1];
     this->stack_pointer--;
     return res;
+}
+
+template <typename GlobalsLifeTime>
+std::optional<std::string> vm<GlobalsLifeTime>::call_function(size_t num_args) {
+    auto& fn_obj = this->stack[this->stack_pointer - 1 - num_args];
+    if (fn_obj.get_type() != object_type::Function) {
+        return "calling non-function";
+    }
+    auto& fn = fn_obj.get_function();
+    if (fn.get_num_params() != num_args) {
+        return "wrong number of arguments: want " +
+               std::to_string(fn.get_num_params()) + ", got " +
+               std::to_string(num_args);
+    }
+    frame frame(fn, this->stack_pointer - num_args);
+    this->push_frame(frame);
+    this->stack_pointer = frame.base_pointer + fn.get_num_locals();
+    return std::nullopt;
 }
 
 template class vm<std::vector<object>>;

@@ -352,7 +352,7 @@ TEST(Compiler, Functions) {
                                     axe::make(axe::op_code::OpAdd, {}),
                                     axe::make(axe::op_code::OpReturnValue, {}),
                                 }),
-                                0)),
+                                0, 0)),
             },
             {
                 axe::make(axe::op_code::OpConstant, {2}),
@@ -372,7 +372,7 @@ TEST(Compiler, Functions) {
                                     axe::make(axe::op_code::OpAdd, {}),
                                     axe::make(axe::op_code::OpReturnValue, {}),
                                 }),
-                                0)),
+                                0, 0)),
             },
             {
                 axe::make(axe::op_code::OpConstant, {2}),
@@ -392,7 +392,7 @@ TEST(Compiler, Functions) {
                                     axe::make(axe::op_code::OpConstant, {1}),
                                     axe::make(axe::op_code::OpReturnValue, {}),
                                 }),
-                                0)),
+                                0, 0)),
             },
             {
                 axe::make(axe::op_code::OpConstant, {2}),
@@ -407,7 +407,7 @@ TEST(Compiler, Functions) {
                                 concatinate_instructions({
                                     axe::make(axe::op_code::OpReturn, {}),
                                 }),
-                                0)),
+                                0, 0)),
             },
             {
                 axe::make(axe::op_code::OpConstant, {0}),
@@ -433,11 +433,11 @@ TEST(Compiler, FunctionCalls) {
                                     axe::make(axe::op_code::OpConstant, {0}),
                                     axe::make(axe::op_code::OpReturnValue, {}),
                                 }),
-                                0)),
+                                0, 0)),
             },
             {
                 axe::make(axe::op_code::OpConstant, {1}),
-                axe::make(axe::op_code::OpCall, {}),
+                axe::make(axe::op_code::OpCall, {0}),
                 axe::make(axe::op_code::OpPop, {}),
             },
         },
@@ -451,16 +451,106 @@ TEST(Compiler, FunctionCalls) {
                                     axe::make(axe::op_code::OpConstant, {0}),
                                     axe::make(axe::op_code::OpReturnValue, {}),
                                 }),
-                                0)),
+                                0, 0)),
             },
             {
                 axe::make(axe::op_code::OpConstant, {1}),
                 axe::make(axe::op_code::OpSetGlobal, {0}),
                 axe::make(axe::op_code::OpGetGlobal, {0}),
-                axe::make(axe::op_code::OpCall, {}),
+                axe::make(axe::op_code::OpCall, {0}),
                 axe::make(axe::op_code::OpPop, {}),
             },
         },
+        {
+            "fn oneArg(a) { }; oneArg(24)",
+            {
+                axe::object(axe::object_type::Function,
+                            axe::compiled_function(
+                                concatinate_instructions({
+                                    axe::make(axe::op_code::OpReturn, {}),
+                                }),
+                                1, 1)),
+                axe::object(axe::object_type::Integer, 24),
+            },
+            {
+                axe::make(axe::op_code::OpConstant, {0}),
+                axe::make(axe::op_code::OpSetGlobal, {0}),
+                axe::make(axe::op_code::OpGetGlobal, {0}),
+                axe::make(axe::op_code::OpConstant, {1}),
+                axe::make(axe::op_code::OpCall, {1}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
+        {
+            "fn manyArgs(a, b, c) { }; manyArgs(24, 25, 26)",
+            {
+                axe::object(axe::object_type::Function,
+                            axe::compiled_function(
+                                concatinate_instructions({
+                                    axe::make(axe::op_code::OpReturn, {}),
+                                }),
+                                3, 3)),
+                axe::object(axe::object_type::Integer, 24),
+                axe::object(axe::object_type::Integer, 25),
+                axe::object(axe::object_type::Integer, 26),
+            },
+            {
+                axe::make(axe::op_code::OpConstant, {0}),
+                axe::make(axe::op_code::OpSetGlobal, {0}),
+                axe::make(axe::op_code::OpGetGlobal, {0}),
+                axe::make(axe::op_code::OpConstant, {1}),
+                axe::make(axe::op_code::OpConstant, {2}),
+                axe::make(axe::op_code::OpConstant, {3}),
+                axe::make(axe::op_code::OpCall, {3}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
+        {"fn oneArg(a) { a }; oneArg(24)",
+         {
+             axe::object(axe::object_type::Function,
+                         axe::compiled_function(
+                             concatinate_instructions({
+                                 axe::make(axe::op_code::OpGetLocal, {0}),
+                                 axe::make(axe::op_code::OpReturnValue, {}),
+                             }),
+                             1, 1)),
+             axe::object(axe::object_type::Integer, 24),
+         },
+         {
+             axe::make(axe::op_code::OpConstant, {0}),
+             axe::make(axe::op_code::OpSetGlobal, {0}),
+             axe::make(axe::op_code::OpGetGlobal, {0}),
+             axe::make(axe::op_code::OpConstant, {1}),
+             axe::make(axe::op_code::OpCall, {1}),
+             axe::make(axe::op_code::OpPop, {}),
+         }},
+        {"fn manyArgs(a, b, c) { a; b; c }; manyArgs(24, 25, 26)",
+         {
+             axe::object(axe::object_type::Function,
+                         axe::compiled_function(
+                             concatinate_instructions({
+                                 axe::make(axe::op_code::OpGetLocal, {0}),
+                                 axe::make(axe::op_code::OpPop, {}),
+                                 axe::make(axe::op_code::OpGetLocal, {1}),
+                                 axe::make(axe::op_code::OpPop, {}),
+                                 axe::make(axe::op_code::OpGetLocal, {2}),
+                                 axe::make(axe::op_code::OpReturnValue, {}),
+                             }),
+                             3, 3)),
+             axe::object(axe::object_type::Integer, 24),
+             axe::object(axe::object_type::Integer, 25),
+             axe::object(axe::object_type::Integer, 26),
+         },
+         {
+             axe::make(axe::op_code::OpConstant, {0}),
+             axe::make(axe::op_code::OpSetGlobal, {0}),
+             axe::make(axe::op_code::OpGetGlobal, {0}),
+             axe::make(axe::op_code::OpConstant, {1}),
+             axe::make(axe::op_code::OpConstant, {2}),
+             axe::make(axe::op_code::OpConstant, {3}),
+             axe::make(axe::op_code::OpCall, {3}),
+             axe::make(axe::op_code::OpPop, {}),
+         }},
     };
 
     for (auto& test : tests) {
@@ -479,7 +569,7 @@ TEST(Compiler, LetStatementScopes) {
                                  axe::make(axe::op_code::OpGetGlobal, {0}),
                                  axe::make(axe::op_code::OpReturnValue, {}),
                              }),
-                             0)),
+                             0, 0)),
          },
          {
              axe::make(axe::op_code::OpConstant, {0}),
@@ -498,34 +588,36 @@ TEST(Compiler, LetStatementScopes) {
                                  axe::make(axe::op_code::OpGetLocal, {0}),
                                  axe::make(axe::op_code::OpReturnValue, {}),
                              }),
-                             1)),
+                             1, 0)),
          },
          {
              axe::make(axe::op_code::OpConstant, {1}),
              axe::make(axe::op_code::OpPop, {}),
          }},
-        {"fn() { let a = 55; let b = 77; a + b }",
-         {
-             axe::object(axe::object_type::Integer, 55),
-             axe::object(axe::object_type::Integer, 77),
-             axe::object(axe::object_type::Function,
-                         axe::compiled_function(
-                             concatinate_instructions({
-                                 axe::make(axe::op_code::OpConstant, {0}),
-                                 axe::make(axe::op_code::OpSetLocal, {0}),
-                                 axe::make(axe::op_code::OpConstant, {1}),
-                                 axe::make(axe::op_code::OpSetLocal, {1}),
-                                 axe::make(axe::op_code::OpGetLocal, {0}),
-                                 axe::make(axe::op_code::OpGetLocal, {1}),
-                                 axe::make(axe::op_code::OpAdd, {}),
-                                 axe::make(axe::op_code::OpReturnValue, {}),
-                             }),
-                             2)),
-         },
-         {
-             axe::make(axe::op_code::OpConstant, {2}),
-             axe::make(axe::op_code::OpPop, {}),
-         }},
+        {
+            "fn() { let a = 55; let b = 77; a + b }",
+            {
+                axe::object(axe::object_type::Integer, 55),
+                axe::object(axe::object_type::Integer, 77),
+                axe::object(axe::object_type::Function,
+                            axe::compiled_function(
+                                concatinate_instructions({
+                                    axe::make(axe::op_code::OpConstant, {0}),
+                                    axe::make(axe::op_code::OpSetLocal, {0}),
+                                    axe::make(axe::op_code::OpConstant, {1}),
+                                    axe::make(axe::op_code::OpSetLocal, {1}),
+                                    axe::make(axe::op_code::OpGetLocal, {0}),
+                                    axe::make(axe::op_code::OpGetLocal, {1}),
+                                    axe::make(axe::op_code::OpAdd, {}),
+                                    axe::make(axe::op_code::OpReturnValue, {}),
+                                }),
+                                2, 0)),
+            },
+            {
+                axe::make(axe::op_code::OpConstant, {2}),
+                axe::make(axe::op_code::OpPop, {}),
+            },
+        },
     };
 
     for (auto& test : tests) {

@@ -33,7 +33,7 @@ static const std::unordered_map<op_code, definition> definitions = {
     {op_code::OpNull, definition("OpNull", {})},
     {op_code::OpGetGlobal, definition("OpGetGlobal", {2})},
     {op_code::OpSetGlobal, definition("OpSetGlobal", {2})},
-    {op_code::OpCall, definition("OpCall", {})},
+    {op_code::OpCall, definition("OpCall", {1})},
     {op_code::OpReturnValue, definition("OpReturnValue", {})},
     {op_code::OpReturn, definition("OpReturn", {})},
     {op_code::OpGetLocal, definition("OpGetLocal", {1})},

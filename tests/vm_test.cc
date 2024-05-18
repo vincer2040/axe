@@ -319,3 +319,73 @@ TEST(VM, CallingFunctionsWithBindings) {
         run_vm_int_test(test);
     }
 }
+
+TEST(VM, CallingFunctionsWithArgumentsAndBindings) {
+    vm_test<int64_t> tests[] = {
+        {
+            "fn identity(a) { a } identity(4)",
+            4,
+        },
+        {
+            "fn sum(a, b) { a + b }; sum(1, 2)",
+            3,
+        },
+        {
+            "fn sum(a, b) { let c = a + b; c } sum(1, 2)",
+            3,
+        },
+        {
+            "fn sum(a, b) { let c = a + b; c }; sum(1, 2) + sum(3, 4)",
+            10,
+        },
+        {
+            "fn sum(a, b) { let c = a + b; c }; fn outer() { sum(1, 2) + "
+            "sum(3, 4) }; outer()",
+            10,
+        },
+        {
+            "let globalNum = 10; fn sum(a, b) { let c = a + b; c + globalNum };\
+                fn outer() { sum(1, 2) + sum(3, 4) + globalNum }; outer() + globalNum",
+            50,
+        },
+    };
+
+    for (auto& test : tests) {
+        run_vm_int_test(test);
+    }
+}
+
+void run_vm_error_test(const vm_test<std::string>& test) {
+    auto ast = parse(test.input);
+    axe::compiler<std::vector<axe::object>, axe::symbol_table> compiler;
+    auto err = compiler.compile(std::move(ast));
+    if (err.has_value()) {
+        std::cout << *err << '\n';
+    }
+    EXPECT_FALSE(err.has_value());
+    axe::vm<std::vector<axe::object>> vm(compiler.get_byte_code());
+    err = vm.run();
+    EXPECT_TRUE(err.has_value());
+    EXPECT_EQ(*err, test.expected);
+}
+
+TEST(VM, CallingFunctionsWithWrongArguments) {
+    vm_test<std::string> tests[] = {
+        {
+            "fn() { 1; }(1)",
+            "wrong number of arguments: want 0, got 1",
+        },
+        {
+            "fn(a) { a; }()",
+            "wrong number of arguments: want 1, got 0",
+        },
+        {
+            "fn(a, b) { a + b }(1)",
+            "wrong number of arguments: want 2, got 1",
+        },
+    };
+
+    for (auto& test : tests) {
+        run_vm_error_test(test);
+    }
+}

@@ -415,6 +415,10 @@ std::optional<std::string>
 compiler<ConstantsLifeTime, SymbolTableLIfeTime>::compile_function(
     const function_expression& function) {
     this->enter_scope();
+    auto& params = function.get_params();
+    for (auto& param : params) {
+        this->symb_table.define(param);
+    }
     auto err = this->compile_block(function.get_body());
     if (err.has_value()) {
         return err;
@@ -428,7 +432,7 @@ compiler<ConstantsLifeTime, SymbolTableLIfeTime>::compile_function(
     size_t num_locals = this->symb_table.get_num_definitions();
     instructions ins = this->leave_scope();
     object obj(object_type::Function,
-               compiled_function(std::move(ins), num_locals));
+               compiled_function(std::move(ins), num_locals, params.size()));
     this->emit(op_code::OpConstant, {this->add_constant(std::move(obj))});
     auto& name = function.get_name();
     if (name.has_value()) {
@@ -446,7 +450,14 @@ compiler<ConstantsLifeTime, SymbolTableLIfeTime>::compile_call(
     if (err.has_value()) {
         return err;
     }
-    this->emit(op_code::OpCall, {});
+    auto& args = call.get_args();
+    for (auto& arg : args) {
+        err = this->compile_expression(arg);
+        if (err.has_value()) {
+            return err;
+        }
+    }
+    this->emit(op_code::OpCall, {static_cast<int>(args.size())});
     return std::nullopt;
 }
 
