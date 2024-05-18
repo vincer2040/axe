@@ -21,33 +21,33 @@ compiler<constants_ref, symbol_table_ref>::compiler(
     this->scopes.push_back(main_scope);
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
 std::optional<std::string>
-compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile(const ast& ast) {
+compiler<ConstantsOwnership, SymbolTableOwnership>::compile(const ast& ast) {
     return this->compile_statements(ast.get_statements());
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
 const byte_code
-compiler<ConstantsLifeTime, SymbolTableLifeTime>::get_byte_code() const {
+compiler<ConstantsOwnership, SymbolTableOwnership>::get_byte_code() const {
     return {this->get_current_instructions(), this->constants};
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
 instructions&
-compiler<ConstantsLifeTime, SymbolTableLifeTime>::current_instructions() {
+compiler<ConstantsOwnership, SymbolTableOwnership>::current_instructions() {
     return this->scopes[this->scope_index].ins;
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
 const instructions&
-compiler<ConstantsLifeTime, SymbolTableLifeTime>::get_current_instructions()
+compiler<ConstantsOwnership, SymbolTableOwnership>::get_current_instructions()
     const {
     return this->scopes[this->scope_index].ins;
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
-size_t compiler<ConstantsLifeTime, SymbolTableLifeTime>::emit(
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
+size_t compiler<ConstantsOwnership, SymbolTableOwnership>::emit(
     op_code op, const std::vector<int> operands) {
     auto instructions = make(op, operands);
     int pos = this->add_instruction(instructions);
@@ -55,8 +55,8 @@ size_t compiler<ConstantsLifeTime, SymbolTableLifeTime>::emit(
     return pos;
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
-size_t compiler<ConstantsLifeTime, SymbolTableLifeTime>::add_instruction(
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
+size_t compiler<ConstantsOwnership, SymbolTableOwnership>::add_instruction(
     const std::vector<uint8_t> ins) {
     size_t pos_new_instruction = this->current_instructions().size();
     this->current_instructions().insert(this->current_instructions().end(),
@@ -64,14 +64,15 @@ size_t compiler<ConstantsLifeTime, SymbolTableLifeTime>::add_instruction(
     return pos_new_instruction;
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
-int compiler<ConstantsLifeTime, SymbolTableLifeTime>::add_constant(object obj) {
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
+int compiler<ConstantsOwnership, SymbolTableOwnership>::add_constant(
+    object obj) {
     this->constants.push_back(std::move(obj));
     return this->constants.size() - 1;
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
-void compiler<ConstantsLifeTime, SymbolTableLifeTime>::set_last_instruction(
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
+void compiler<ConstantsOwnership, SymbolTableOwnership>::set_last_instruction(
     op_code op, size_t position) {
     emitted_instruction last = {op, position};
     emitted_instruction previous =
@@ -80,15 +81,15 @@ void compiler<ConstantsLifeTime, SymbolTableLifeTime>::set_last_instruction(
     this->scopes[this->scope_index].last_instruction = last;
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
-bool compiler<ConstantsLifeTime,
-              SymbolTableLifeTime>::last_instruction_is_pop() {
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
+bool compiler<ConstantsOwnership,
+              SymbolTableOwnership>::last_instruction_is_pop() {
     return this->scopes[this->scope_index].last_instruction.op ==
            op_code::OpPop;
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
-bool compiler<ConstantsLifeTime, SymbolTableLifeTime>::last_instruction_is(
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
+bool compiler<ConstantsOwnership, SymbolTableOwnership>::last_instruction_is(
     op_code op) {
     if (this->current_instructions().size() == 0) {
         return false;
@@ -96,15 +97,15 @@ bool compiler<ConstantsLifeTime, SymbolTableLifeTime>::last_instruction_is(
     return this->scopes[this->scope_index].last_instruction.op == op;
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
-void compiler<ConstantsLifeTime, SymbolTableLifeTime>::remove_last_pop() {
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
+void compiler<ConstantsOwnership, SymbolTableOwnership>::remove_last_pop() {
     auto previous = this->scopes[this->scope_index].previous_instruction;
     this->current_instructions().pop_back();
     this->scopes[this->scope_index].last_instruction = previous;
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
-void compiler<ConstantsLifeTime, SymbolTableLifeTime>::replace_instruction(
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
+void compiler<ConstantsOwnership, SymbolTableOwnership>::replace_instruction(
     size_t position, std::vector<uint8_t> new_instruction) {
     auto& ins = this->current_instructions();
     for (size_t i = 0; i < new_instruction.size(); ++i) {
@@ -112,9 +113,9 @@ void compiler<ConstantsLifeTime, SymbolTableLifeTime>::replace_instruction(
     }
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
-void compiler<ConstantsLifeTime,
-              SymbolTableLifeTime>::replace_last_pop_with_return() {
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
+void compiler<ConstantsOwnership,
+              SymbolTableOwnership>::replace_last_pop_with_return() {
     size_t last_position =
         this->scopes[this->scope_index].last_instruction.position;
     this->replace_instruction(last_position,
@@ -123,8 +124,8 @@ void compiler<ConstantsLifeTime,
         op_code::OpReturnValue;
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
-void compiler<ConstantsLifeTime, SymbolTableLifeTime>::change_operand(
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
+void compiler<ConstantsOwnership, SymbolTableOwnership>::change_operand(
     size_t op_position, int operand) {
     op_code op =
         static_cast<op_code>(this->current_instructions()[op_position]);
@@ -132,16 +133,16 @@ void compiler<ConstantsLifeTime, SymbolTableLifeTime>::change_operand(
     this->replace_instruction(op_position, new_instruction);
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
-void compiler<ConstantsLifeTime, SymbolTableLifeTime>::enter_scope() {
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
+void compiler<ConstantsOwnership, SymbolTableOwnership>::enter_scope() {
     compilation_scope scope;
     this->scopes.push_back(scope);
     this->scope_index++;
     this->symb_table = symbol_table::with_outer(this->symb_table);
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
-instructions compiler<ConstantsLifeTime, SymbolTableLifeTime>::leave_scope() {
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
+instructions compiler<ConstantsOwnership, SymbolTableOwnership>::leave_scope() {
     instructions ins = this->current_instructions();
     this->scopes.pop_back();
     this->scope_index--;
@@ -149,9 +150,9 @@ instructions compiler<ConstantsLifeTime, SymbolTableLifeTime>::leave_scope() {
     return ins;
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
 std::optional<std::string>
-compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_statements(
+compiler<ConstantsOwnership, SymbolTableOwnership>::compile_statements(
     const std::vector<statement>& statements) {
     for (auto& statement : statements) {
         auto err = this->compile_statement(statement);
@@ -162,9 +163,9 @@ compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_statements(
     return std::nullopt;
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
 std::optional<std::string>
-compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_statement(
+compiler<ConstantsOwnership, SymbolTableOwnership>::compile_statement(
     const statement& statement) {
     std::optional<std::string> err = std::nullopt;
     switch (statement.get_type()) {
@@ -187,9 +188,9 @@ compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_statement(
     return err;
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
 std::optional<std::string>
-compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_let_statement(
+compiler<ConstantsOwnership, SymbolTableOwnership>::compile_let_statement(
     const let_statement& let) {
     auto err = this->compile_expression(let.get_value());
     if (err.has_value()) {
@@ -204,9 +205,9 @@ compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_let_statement(
     return std::nullopt;
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
 std::optional<std::string>
-compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_return_statement(
+compiler<ConstantsOwnership, SymbolTableOwnership>::compile_return_statement(
     const return_statement& ret) {
     auto err = this->compile_expression(ret);
     if (err.has_value()) {
@@ -216,9 +217,9 @@ compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_return_statement(
     return std::nullopt;
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
 std::optional<std::string>
-compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_expression(
+compiler<ConstantsOwnership, SymbolTableOwnership>::compile_expression(
     const expression& expression) {
     std::optional<std::string> err = std::nullopt;
     switch (expression.get_type()) {
@@ -257,27 +258,27 @@ compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_expression(
     return err;
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
 std::optional<std::string>
-compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_integer(
+compiler<ConstantsOwnership, SymbolTableOwnership>::compile_integer(
     int64_t value) {
     object obj(object_type::Integer, value);
     this->emit(op_code::OpConstant, {this->add_constant(std::move(obj))});
     return std::nullopt;
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
 std::optional<std::string>
-compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_string(
+compiler<ConstantsOwnership, SymbolTableOwnership>::compile_string(
     const std::string& value) {
     object obj(object_type::String, value);
     this->emit(op_code::OpConstant, {this->add_constant(std::move(obj))});
     return std::nullopt;
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
 std::optional<std::string>
-compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_ident(
+compiler<ConstantsOwnership, SymbolTableOwnership>::compile_ident(
     const std::string& ident) {
     auto symbol = this->symb_table.resolve(ident);
     if (!symbol.has_value()) {
@@ -291,9 +292,9 @@ compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_ident(
     return std::nullopt;
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
 std::optional<std::string>
-compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_prefix(
+compiler<ConstantsOwnership, SymbolTableOwnership>::compile_prefix(
     const prefix& prefix) {
     auto err = this->compile_expression(*prefix.get_rhs());
     if (err.has_value()) {
@@ -310,9 +311,9 @@ compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_prefix(
     return std::nullopt;
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
 std::optional<std::string>
-compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_infix(
+compiler<ConstantsOwnership, SymbolTableOwnership>::compile_infix(
     const infix& infix) {
 
     if (infix.get_op() == infix_operator::Lt) {
@@ -368,9 +369,9 @@ compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_infix(
     return std::nullopt;
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
 std::optional<std::string>
-compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_if(
+compiler<ConstantsOwnership, SymbolTableOwnership>::compile_if(
     const if_expression& if_exp) {
     auto err = this->compile_expression(*if_exp.get_cond());
     if (err.has_value()) {
@@ -410,9 +411,9 @@ compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_if(
     return std::nullopt;
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLIfeTime>
+template <typename ConstantsOwnership, typename SymbolTableLIfeTime>
 std::optional<std::string>
-compiler<ConstantsLifeTime, SymbolTableLIfeTime>::compile_function(
+compiler<ConstantsOwnership, SymbolTableLIfeTime>::compile_function(
     const function_expression& function) {
     this->enter_scope();
     auto& params = function.get_params();
@@ -442,9 +443,9 @@ compiler<ConstantsLifeTime, SymbolTableLIfeTime>::compile_function(
     return std::nullopt;
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLIfeTime>
+template <typename ConstantsOwnership, typename SymbolTableLIfeTime>
 std::optional<std::string>
-compiler<ConstantsLifeTime, SymbolTableLIfeTime>::compile_call(
+compiler<ConstantsOwnership, SymbolTableLIfeTime>::compile_call(
     const call& call) {
     auto err = this->compile_expression(*call.get_function());
     if (err.has_value()) {
@@ -461,9 +462,9 @@ compiler<ConstantsLifeTime, SymbolTableLIfeTime>::compile_call(
     return std::nullopt;
 }
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
 std::optional<std::string>
-compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_block(
+compiler<ConstantsOwnership, SymbolTableOwnership>::compile_block(
     const block_statement& block) {
     return this->compile_statements(block.get_block());
 }

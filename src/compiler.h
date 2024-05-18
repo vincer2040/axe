@@ -31,7 +31,7 @@ using constants_ref = std::vector<object>&;
 using symbol_table_owned = symbol_table;
 using symbol_table_ref = symbol_table&;
 
-template <typename ConstantsLifeTime, typename SymbolTableLifeTime>
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
 class compiler {
   public:
     compiler();
@@ -40,8 +40,8 @@ class compiler {
     const byte_code get_byte_code() const;
 
   private:
-    ConstantsLifeTime constants;
-    SymbolTableLifeTime symb_table;
+    ConstantsOwnership constants;
+    SymbolTableOwnership symb_table;
     std::vector<compilation_scope> scopes;
     size_t scope_index;
 
