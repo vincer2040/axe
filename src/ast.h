@@ -229,7 +229,7 @@ class expression : public ast_node {
     expression(expression_type type, expression_data data);
 
     expression_type get_type() const;
-    const char* get_type_string() const;
+    const char* type_to_string() const;
     int64_t get_int() const;
     double get_float() const;
     bool get_bool() const;
@@ -241,8 +241,6 @@ class expression : public ast_node {
     const match& get_match() const;
     const function_expression& get_function() const;
     const call& get_call() const;
-
-    const char* type_to_string() const;
 
     std::string string() const override;
 

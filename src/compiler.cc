@@ -251,7 +251,7 @@ compiler<ConstantsLifeTime, SymbolTableLifeTime>::compile_expression(
         err = this->compile_call(expression.get_call());
         break;
     default:
-        err = "cannot compile " + std::string(expression.get_type_string());
+        err = "cannot compile " + std::string(expression.type_to_string());
         break;
     }
     return err;
