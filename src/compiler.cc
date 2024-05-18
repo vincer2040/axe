@@ -197,7 +197,7 @@ compiler<ConstantsOwnership, SymbolTableOwnership>::compile_let_statement(
         return err;
     }
     auto symbol = this->symb_table.define(let.get_name());
-    if (symbol.scope == axe::symbol_scope::GlobalScope) {
+    if (symbol.scope == symbol_scope::GlobalScope) {
         this->emit(op_code::OpSetGlobal, {(int)symbol.index});
     } else {
         this->emit(op_code::OpSetLocal, {(int)symbol.index});
@@ -241,6 +241,9 @@ compiler<ConstantsOwnership, SymbolTableOwnership>::compile_expression(
         break;
     case expression_type::Infix:
         err = this->compile_infix(expression.get_infix());
+        break;
+    case expression_type::Assignment:
+        err = this->compile_assignment(expression.get_assignment());
         break;
     case expression_type::If:
         err = this->compile_if(expression.get_if());
@@ -365,6 +368,24 @@ compiler<ConstantsOwnership, SymbolTableOwnership>::compile_infix(
                    std::string(infix_operator_string(infix.get_op()));
         return err;
     }
+    }
+    return std::nullopt;
+}
+
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
+std::optional<std::string>
+compiler<ConstantsOwnership, SymbolTableOwnership>::compile_assignment(
+    const assignment& assignment) {
+    auto err = this->compile_expression(*assignment.get_rhs());
+    auto& ident = assignment.get_ident();
+    auto symbol = this->symb_table.resolve(ident);
+    if (!symbol.has_value()) {
+        return ident + " does not exist";
+    }
+    if ((*symbol).scope == symbol_scope::GlobalScope) {
+        this->emit(op_code::OpSetGlobal, {(int)(*symbol).index});
+    } else {
+        this->emit(op_code::OpSetLocal, {(int)(*symbol).index});
     }
     return std::nullopt;
 }

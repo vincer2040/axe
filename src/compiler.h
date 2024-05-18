@@ -74,6 +74,7 @@ class compiler {
     std::optional<std::string> compile_ident(const std::string& ident);
     std::optional<std::string> compile_prefix(const prefix& prefix);
     std::optional<std::string> compile_infix(const infix& infix);
+    std::optional<std::string> compile_assignment(const assignment& assignment);
     std::optional<std::string> compile_if(const if_expression& if_exp);
     std::optional<std::string>
     compile_function(const function_expression& function);

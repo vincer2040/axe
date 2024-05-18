@@ -309,6 +309,39 @@ TEST(Compiler, GlobalLetStatements) {
     }
 }
 
+TEST(Compiler, Assignments) {
+    compiler_test tests[] = {
+        {"let foo = 1; foo = 2;",
+         {
+             axe::object(axe::object_type::Integer, 1),
+             axe::object(axe::object_type::Integer, 2),
+         },
+         {
+             axe::make(axe::op_code::OpConstant, {0}),
+             axe::make(axe::op_code::OpSetGlobal, {0}),
+             axe::make(axe::op_code::OpConstant, {1}),
+             axe::make(axe::op_code::OpSetGlobal, {0}),
+         }},
+        {"let foo = 1; let bar = 2; foo = bar;",
+         {
+             axe::object(axe::object_type::Integer, 1),
+             axe::object(axe::object_type::Integer, 2),
+         },
+         {
+             axe::make(axe::op_code::OpConstant, {0}),
+             axe::make(axe::op_code::OpSetGlobal, {0}),
+             axe::make(axe::op_code::OpConstant, {1}),
+             axe::make(axe::op_code::OpSetGlobal, {1}),
+             axe::make(axe::op_code::OpGetGlobal, {1}),
+             axe::make(axe::op_code::OpSetGlobal, {0}),
+         }},
+    };
+
+    for (auto& test : tests) {
+        run_compiler_test(test);
+    }
+}
+
 TEST(Compiler, Strings) {
     compiler_test tests[] = {
         {

@@ -189,6 +189,17 @@ TEST(VM, GlobalLetStatements) {
     }
 }
 
+TEST(VM, Assignment) {
+    vm_test<int64_t> tests[] = {
+        {"let foo = 1; foo = 2; foo", 2},
+        {"let foo = 1; let bar = foo; foo = 2; bar", 1},
+    };
+
+    for (auto& test : tests) {
+        run_vm_int_test(test);
+    }
+}
+
 void run_vm_string_test(vm_test<std::string> test) {
     auto ast = parse(test.input);
     axe::compiler<std::vector<axe::object>, axe::symbol_table> compiler;
