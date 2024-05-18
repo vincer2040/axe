@@ -226,6 +226,9 @@ compiler<ConstantsOwnership, SymbolTableOwnership>::compile_expression(
     case expression_type::Integer:
         err = this->compile_integer(expression.get_int());
         break;
+    case expression_type::Float:
+        err = this->compile_float(expression.get_float());
+        break;
     case expression_type::Bool:
         this->emit(expression.get_bool() ? op_code::OpTrue : op_code::OpFalse,
                    {});
@@ -266,6 +269,15 @@ std::optional<std::string>
 compiler<ConstantsOwnership, SymbolTableOwnership>::compile_integer(
     int64_t value) {
     object obj(object_type::Integer, value);
+    this->emit(op_code::OpConstant, {this->add_constant(std::move(obj))});
+    return std::nullopt;
+}
+
+template <typename ConstantsOwnership, typename SymbolTableOwnership>
+std::optional<std::string>
+compiler<ConstantsOwnership, SymbolTableOwnership>::compile_float(
+    double value) {
+    object obj(object_type::Float, value);
     this->emit(op_code::OpConstant, {this->add_constant(std::move(obj))});
     return std::nullopt;
 }

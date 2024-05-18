@@ -178,6 +178,30 @@ TEST(Compiler, IntegerArithmatic) {
     }
 }
 
+TEST(Compiler, Floats) {
+    compiler_test tests[] = {
+        {"5.5",
+         {axe::object(axe::object_type::Float, 5.5)},
+         {
+             axe::make(axe::op_code::OpConstant, {0}),
+             axe::make(axe::op_code::OpPop, {}),
+         }},
+        {"5.5 + 3.3",
+         {axe::object(axe::object_type::Float, 5.5),
+          axe::object(axe::object_type::Float, 3.3)},
+         {
+             axe::make(axe::op_code::OpConstant, {0}),
+             axe::make(axe::op_code::OpConstant, {1}),
+             axe::make(axe::op_code::OpAdd, {}),
+             axe::make(axe::op_code::OpPop, {}),
+         }},
+    };
+
+    for (auto& test : tests) {
+        run_compiler_test(test);
+    }
+}
+
 TEST(Compiler, Booleans) {
     compiler_test tests[] = {
         {

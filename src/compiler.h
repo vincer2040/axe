@@ -70,6 +70,7 @@ class compiler {
     compile_return_statement(const return_statement& ret);
     std::optional<std::string> compile_expression(const expression& expression);
     std::optional<std::string> compile_integer(int64_t value);
+    std::optional<std::string> compile_float(double value);
     std::optional<std::string> compile_string(const std::string& value);
     std::optional<std::string> compile_ident(const std::string& ident);
     std::optional<std::string> compile_prefix(const prefix& prefix);

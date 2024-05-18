@@ -74,6 +74,44 @@ TEST(VM, IntegerArithmatic) {
     }
 }
 
+void test_float(const axe::object& got, double expected) {
+    EXPECT_EQ(got.get_type(), axe::object_type::Float);
+    EXPECT_EQ(got.get_float(), expected);
+}
+
+void run_vm_float_test(const vm_test<double>& test) {
+    auto ast = parse(test.input);
+    axe::compiler<std::vector<axe::object>, axe::symbol_table> compiler;
+    auto err = compiler.compile(std::move(ast));
+    if (err.has_value()) {
+        std::cout << *err << '\n';
+    }
+    EXPECT_FALSE(err.has_value());
+    axe::vm<std::vector<axe::object>> vm(compiler.get_byte_code());
+    err = vm.run();
+    if (err.has_value()) {
+        std::cout << *err << '\n';
+    }
+    EXPECT_FALSE(err.has_value());
+    auto stack_elem = vm.last_popped_stack_element();
+    test_float(stack_elem, test.expected);
+}
+
+TEST(VM, Floats) {
+    vm_test<double> tests[] = {
+        {"5.5", 5.5},
+        {"-5.5", -5.5},
+        {"5.5 + 3.3", 8.8},
+        {"5.5 - 3.3", 2.2},
+        {"5.5 * 3.3", 18.15},
+        {"5.0 / 2.5", 2},
+    };
+
+    for (auto& test : tests) {
+        run_vm_float_test(test);
+    }
+}
+
 void test_bool(const axe::object& got, bool expected) {
     EXPECT_EQ(got.get_type(), axe::object_type::Bool);
     EXPECT_EQ(got.get_bool(), expected);

@@ -110,12 +110,14 @@ std::optional<std::string> vm<GlobalsLifeTime>::run() {
         } break;
         case op_code::OpMinus: {
             auto& rhs = this->pop();
-            if (rhs.get_type() != object_type::Integer) {
+            if (rhs.get_type() == object_type::Integer) {
+                err = this->push(object(object_type::Integer, -rhs.get_int()));
+            } else if (rhs.get_type() == object_type::Float) {
+                err = this->push(object(object_type::Float, -rhs.get_float()));
+            } else {
                 err = "unsupported type for negation " +
                       std::string(rhs.type_to_strig());
-                return err;
             }
-            err = this->push(object(object_type::Integer, -rhs.get_int()));
         } break;
         case op_code::OpJump: {
             size_t position =

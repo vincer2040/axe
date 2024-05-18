@@ -193,11 +193,14 @@ bool object::operator!=(const object& other) const {
 }
 
 bool object::operator>(const object& rhs) const {
-    if (this->type != object_type::Integer ||
-        rhs.type != object_type::Integer) {
-        return false;
+    if (this->type == object_type::Integer &&
+        rhs.type == object_type::Integer) {
+        return this->get_int() > rhs.get_int();
     }
-    return this->get_int() > rhs.get_int();
+    if (this->type == object_type::Float && rhs.type == object_type::Float) {
+        return this->get_float() > rhs.get_float();
+    }
+    return false;
 }
 
 object object::operator+(const object& rhs) const {
@@ -207,6 +210,8 @@ object object::operator+(const object& rhs) const {
     switch (this->type) {
     case object_type::Integer:
         return object(object_type::Integer, this->get_int() + rhs.get_int());
+    case object_type::Float:
+        return object(object_type::Float, this->get_float() + rhs.get_float());
     case object_type::String:
         return object(object_type::String,
                       this->get_string() + rhs.get_string());
@@ -217,30 +222,39 @@ object object::operator+(const object& rhs) const {
 }
 
 object object::operator-(const object& rhs) const {
-    if (this->type != object_type::Integer ||
-        rhs.type != object_type::Integer) {
-        return object();
+    if (this->type == object_type::Integer &&
+        rhs.type == object_type::Integer) {
+        return object(object_type::Integer, this->get_int() - rhs.get_int());
     }
-    int64_t value = this->get_int() - rhs.get_int();
-    return object(object_type::Integer, value);
+    if (this->type == object_type::Float &&
+        rhs.get_type() == object_type::Float) {
+        return object(object_type::Float, this->get_float() - rhs.get_float());
+    }
+    return object();
 }
 
 object object::operator*(const object& rhs) const {
-    if (this->type != object_type::Integer ||
-        rhs.type != object_type::Integer) {
-        return object();
+    if (this->type == object_type::Integer &&
+        rhs.type == object_type::Integer) {
+        return object(object_type::Integer, this->get_int() * rhs.get_int());
     }
-    int64_t value = this->get_int() * rhs.get_int();
-    return object(object_type::Integer, value);
+    if (this->type == object_type::Float &&
+        rhs.get_type() == object_type::Float) {
+        return object(object_type::Float, this->get_float() * rhs.get_float());
+    }
+    return object();
 }
 
 object object::operator/(const object& rhs) const {
-    if (this->type != object_type::Integer ||
-        rhs.type != object_type::Integer) {
-        return object();
+    if (this->type == object_type::Integer &&
+        rhs.type == object_type::Integer) {
+        return object(object_type::Integer, this->get_int() / rhs.get_int());
     }
-    int64_t value = this->get_int() / rhs.get_int();
-    return object(object_type::Integer, value);
+    if (this->type == object_type::Float &&
+        rhs.get_type() == object_type::Float) {
+        return object(object_type::Float, this->get_float() / rhs.get_float());
+    }
+    return object();
 }
 
 } // namespace axe
