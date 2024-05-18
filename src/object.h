@@ -32,8 +32,8 @@ class compiled_function {
     size_t num_params;
 };
 
-using object_data =
-    std::variant<std::monostate, bool, int64_t, double, std::string, compiled_function>;
+using object_data = std::variant<std::monostate, bool, int64_t, double,
+                                 std::string, compiled_function>;
 
 class object {
   public:

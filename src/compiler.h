@@ -66,7 +66,8 @@ class compiler {
     compile_statements(const std::vector<statement>& statements);
     std::optional<std::string> compile_statement(const statement& statement);
     std::optional<std::string> compile_let_statement(const let_statement& let);
-    std::optional<std::string> compile_return_statement(const return_statement& ret);
+    std::optional<std::string>
+    compile_return_statement(const return_statement& ret);
     std::optional<std::string> compile_expression(const expression& expression);
     std::optional<std::string> compile_integer(int64_t value);
     std::optional<std::string> compile_string(const std::string& value);
@@ -74,7 +75,8 @@ class compiler {
     std::optional<std::string> compile_prefix(const prefix& prefix);
     std::optional<std::string> compile_infix(const infix& infix);
     std::optional<std::string> compile_if(const if_expression& if_exp);
-    std::optional<std::string> compile_function(const function_expression& function);
+    std::optional<std::string>
+    compile_function(const function_expression& function);
     std::optional<std::string> compile_call(const call& call);
 
     std::optional<std::string> compile_block(const block_statement& block);
