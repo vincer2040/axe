@@ -116,7 +116,7 @@ std::optional<std::string> vm<GlobalsLifeTime>::run() {
                 err = this->push(object(object_type::Float, -rhs.get_float()));
             } else {
                 err = "unsupported type for negation " +
-                      std::string(rhs.type_to_strig());
+                      std::string(rhs.type_to_string());
             }
         } break;
         case op_code::OpJump: {
@@ -215,7 +215,7 @@ template <typename GlobalsLifeTime>
 std::optional<std::string> vm<GlobalsLifeTime>::call_function(size_t num_args) {
     auto& fn_obj = this->stack[this->stack_pointer - 1 - num_args];
     if (fn_obj.get_type() != object_type::Function) {
-        return "calling non-function";
+        return "calling non-function, " + std::string(fn_obj.type_to_string());
     }
     auto& fn = fn_obj.get_function();
     if (fn.get_num_params() != num_args) {

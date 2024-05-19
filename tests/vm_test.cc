@@ -315,11 +315,9 @@ TEST(VM, FirstClassFunctions) {
             "returnsOneReturner()();",
             1,
         },
-        // TODO: figure out why this doesn't work when doing fn returnsOne() { 1
-        // } return returnsOne doesn't work
         {
             "fn returnsOneReturner() {\
-                let returnsOne = fn() { 1 }\
+                fn returnsOne() { 1 }\
                 returnsOne\
             }\
             returnsOneReturner()()",

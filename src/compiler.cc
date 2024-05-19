@@ -178,7 +178,8 @@ compiler<ConstantsOwnership, SymbolTableOwnership>::compile_statement(
     case statement_type::ExpressionStatement:
         err = this->compile_expression(statement.get_expression());
         // current work around for setting functions
-        if (!this->last_instruction_is(op_code::OpSetGlobal)) {
+        if (!this->last_instruction_is(op_code::OpSetGlobal) &&
+            !this->last_instruction_is(op_code::OpSetLocal)) {
             this->emit(op_code::OpPop, {});
         }
         break;
@@ -471,7 +472,11 @@ compiler<ConstantsOwnership, SymbolTableLIfeTime>::compile_function(
     auto& name = function.get_name();
     if (name.has_value()) {
         auto symbol = this->symb_table.define(*name);
-        this->emit(op_code::OpSetGlobal, {(int)symbol.index});
+        if (symbol.scope == symbol_scope::GlobalScope) {
+            this->emit(op_code::OpSetGlobal, {(int)symbol.index});
+        } else {
+            this->emit(op_code::OpSetLocal, {(int)symbol.index});
+        }
     }
     return std::nullopt;
 }
