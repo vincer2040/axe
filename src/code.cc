@@ -1,7 +1,6 @@
 #include "code.h"
 #include <optional>
 #include <stdint.h>
-#include <unordered_map>
 
 namespace axe {
 
@@ -14,38 +13,23 @@ const std::vector<int>& definition::get_operand_widths() const {
     return this->operand_widths;
 }
 
-static const std::unordered_map<op_code, definition> definitions = {
-    {op_code::OpConstant, definition("OpConstant", {2})},
-    {op_code::OpAdd, definition("OpAdd", {})},
-    {op_code::OpPop, definition("OpPop", {})},
-    {op_code::OpSub, definition("OpSub", {})},
-    {op_code::OpMul, definition("OpMul", {})},
-    {op_code::OpDiv, definition("OpDiv", {})},
-    {op_code::OpTrue, definition("OpTrue", {})},
-    {op_code::OpFalse, definition("OpFalse", {})},
-    {op_code::OpEq, definition("OpEq", {})},
-    {op_code::OpNotEq, definition("OpNotEq", {})},
-    {op_code::OpGreaterThan, definition("OpGreaterThan", {})},
-    {op_code::OpMinus, definition("OpMinus", {})},
-    {op_code::OpBang, definition("OpBang", {})},
-    {op_code::OpJumpNotTruthy, definition("OpBang", {2})},
-    {op_code::OpJump, definition("OpBang", {2})},
-    {op_code::OpNull, definition("OpNull", {})},
-    {op_code::OpGetGlobal, definition("OpGetGlobal", {2})},
-    {op_code::OpSetGlobal, definition("OpSetGlobal", {2})},
-    {op_code::OpCall, definition("OpCall", {1})},
-    {op_code::OpReturnValue, definition("OpReturnValue", {})},
-    {op_code::OpReturn, definition("OpReturn", {})},
-    {op_code::OpGetLocal, definition("OpGetLocal", {1})},
-    {op_code::OpSetLocal, definition("OpSetLocal", {1})},
+static const definition definitions[] = {
+    definition("OpConstant", {2}),   definition("OpAdd", {}),
+    definition("OpPop", {}),         definition("OpSub", {}),
+    definition("OpMul", {}),         definition("OpDiv", {}),
+    definition("OpTrue", {}),        definition("OpFalse", {}),
+    definition("OpEq", {}),          definition("OpNotEq", {}),
+    definition("OpGreaterThan", {}), definition("OpMinus", {}),
+    definition("OpBang", {}),        definition("OpBang", {2}),
+    definition("OpBang", {2}),       definition("OpNull", {}),
+    definition("OpGetGlobal", {2}),  definition("OpSetGlobal", {2}),
+    definition("OpCall", {1}),       definition("OpReturnValue", {}),
+    definition("OpReturn", {}),      definition("OpGetLocal", {1}),
+    definition("OpSetLocal", {1}),
 };
 
 std::optional<const definition> lookup(op_code op) {
-    const auto& it = definitions.find(op);
-    if (it == definitions.end()) {
-        return std::nullopt;
-    }
-    return it->second;
+    return definitions[static_cast<size_t>(op)];
 }
 
 static void put_big_endian_u16(std::vector<uint8_t>& instruction,
