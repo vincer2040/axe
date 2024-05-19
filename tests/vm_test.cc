@@ -99,12 +99,8 @@ void run_vm_float_test(const vm_test<double>& test) {
 
 TEST(VM, Floats) {
     vm_test<double> tests[] = {
-        {"5.5", 5.5},
-        {"-5.5", -5.5},
-        {"5.5 + 3.3", 8.8},
-        {"5.5 - 3.3", 2.2},
-        {"5.5 * 3.3", 18.15},
-        {"5.0 / 2.5", 2},
+        {"5.5", 5.5},       {"-5.5", -5.5},       {"5.5 + 3.3", 8.8},
+        {"5.5 - 3.3", 2.2}, {"5.5 * 3.3", 18.15}, {"5.0 / 2.5", 2},
     };
 
     for (auto& test : tests) {
@@ -231,6 +227,7 @@ TEST(VM, Assignment) {
     vm_test<int64_t> tests[] = {
         {"let foo = 1; foo = 2; foo", 2},
         {"let foo = 1; let bar = foo; foo = 2; bar", 1},
+        {"fn foo(a) { a = 5; a }; foo(10)", 5},
     };
 
     for (auto& test : tests) {
