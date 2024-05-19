@@ -142,6 +142,7 @@ bool object::operator==(const object& other) const {
     case object_type::Error:
         return false;
     case object_type::Function: {
+        // TODO: probably not this
         auto& this_func = this->get_function();
         auto& other_func = other.get_function();
         auto& this_ins = this_func.get_instructions();
