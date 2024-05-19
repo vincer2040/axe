@@ -449,6 +449,8 @@ template <typename ConstantsOwnership, typename SymbolTableLIfeTime>
 std::optional<std::string>
 compiler<ConstantsOwnership, SymbolTableLIfeTime>::compile_function(
     const function_expression& function) {
+    // temporarily set the name just in case it is
+    // a recursive function
     auto& t_name = function.get_name();
     if (t_name.has_value()) {
         this->symb_table.define(*t_name);
@@ -475,6 +477,7 @@ compiler<ConstantsOwnership, SymbolTableLIfeTime>::compile_function(
     this->emit(op_code::OpConstant, {this->add_constant(std::move(obj))});
     auto& name = function.get_name();
     if (name.has_value()) {
+        // remove the temporarily set name
         this->symb_table.erase(*name);
         auto symbol = this->symb_table.define(*name);
         if (symbol.scope == symbol_scope::GlobalScope) {
