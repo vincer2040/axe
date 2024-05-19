@@ -41,7 +41,7 @@ void main_loop() {
             symbol_table, constants);
         auto err = compiler.compile(ast);
         if (err.has_value()) {
-            std::cout << *err << '\n';
+            std::cout << "COMPILE ERROR: " << *err << '\n';
             continue;
         }
         axe::vm<std::vector<axe::object>&> vm(compiler.get_byte_code(),
