@@ -29,7 +29,7 @@ const char* const object_type_strings[] = {
     "Null", "Bool", "Integer", "Float", "String", "Error", "Function",
 };
 
-const char* object::type_to_strig() const {
+const char* object::type_to_string() const {
     return object_type_strings[(int)this->type];
 }
 

@@ -48,7 +48,7 @@ class object {
     const std::string& get_error() const;
     const compiled_function& get_function() const;
 
-    const char* type_to_strig() const;
+    const char* type_to_string() const;
     std::string string() const;
 
     bool is_error() const;
