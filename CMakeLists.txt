@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.10)
 
 project(axe VERSION 0.0.1)
 
-
 enable_testing()
 add_subdirectory(tests)
 
@@ -65,8 +64,23 @@ add_library(
 )
 
 add_executable(
+    axe-repl
+    src/repl.cc
+)
+
+add_executable(
     axec
-    src/main.cc
+    src/axec.cc
+)
+
+target_link_libraries(
+    axe-repl
+    lexer
+    parser
+    ast
+    code
+    compiler
+    vm
 )
 
 target_link_libraries(
@@ -76,7 +90,6 @@ target_link_libraries(
     ast
     code
     compiler
-    vm
 )
 
 target_link_libraries(
