@@ -30,6 +30,7 @@ class symbol_table {
     static symbol_table with_outer(symbol_table& outer);
     symbol define(std::string name);
     std::optional<const symbol> resolve(const std::string& name) const;
+    void erase(const std::string& name);
     symbol_table get_outer();
     size_t get_num_definitions() const;
 

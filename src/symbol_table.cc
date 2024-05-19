@@ -51,6 +51,11 @@ symbol_table::resolve(const std::string& name) const {
     return std::nullopt;
 }
 
+void symbol_table::erase(const std::string& name) {
+    this->store.erase(name);
+    this->num_definitions--;
+}
+
 symbol_table symbol_table::get_outer() {
     AXE_CHECK(this->outer.has_value(),
               "trying to get outer from symbol table without outer");
